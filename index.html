@@ -71,6 +71,22 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{text-align:left;
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;z-index:99;font-size:.9rem}
 .links a{word-break:break-all;font-size:.8rem}
 .qrbox{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}.qrbox figure{margin:0;text-align:center;font-size:.75rem;color:var(--mut)}.qrbox img{width:110px;height:110px;image-rendering:pixelated}
+.stat-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:.8rem}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--ok);display:inline-block;flex:none}
+.dot.off{background:var(--mut)}
+.bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:0 0 12px}
+.bar>i{display:block;height:100%;background:var(--ac)}
+.tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 12px}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);text-align:center}
+.tile:hover{border-color:var(--ac)}
+.tile em{font-style:normal;font-size:1.7rem;line-height:1}
+.tile span{font-size:.88rem;font-weight:600}
+.tile b{font-size:.62rem;font-weight:500;letter-spacing:.02em;color:var(--mut);text-transform:uppercase}
+details.more{margin-top:10px}
+details.more summary{cursor:pointer;color:var(--mut);font-size:.82rem;list-style:none}
+details.more summary::-webkit-details-marker{display:none}
+details.more summary:before{content:'⋯ ';font-weight:700}
+details.more[open] summary{margin-bottom:8px}
 /* canlı duvar */
 .wall{position:fixed;inset:0;background:#0d0b14;color:#fff;overflow:hidden}
 .wall #stage{position:absolute;inset:0}
@@ -789,13 +805,20 @@ async function admin() {
     if (!s.size) { $('#ls').innerHTML = '<p class="mut">Henüz düğün yok. “Yeni düğün” ile başlayın; QR ve albüm anahtarı otomatik üretilir.</p>'; return; }
     const items = await Promise.all(s.docs.map(async d => ({id: d.id, w: d.data(), key: (await db.doc(`weddings/${d.id}/secret/k`).get()).data()?.key, newOrders: (await db.collection(`weddings/${d.id}/orders`).where('status', '==', 'new').get()).size})));
     $('#ls').innerHTML = items.map(({id, w, key, newOrders}) => { const pk = PK[w.pkg] || PK.basic; const lu = guestLink(w, id), la = link('a', id, key);
+      const pct = Math.min(100, Math.round(((w.photoCount || 0) / w.quota) * 100));
       return `<div class="card" data-id="${id}"><div class="row"><h2 style="margin:0">${esc(w.title)}</h2><span class="badge">${pk.n}</span><span class="sp"></span>
-      <span class="mut">${w.photoCount || 0}/${w.quota} dosya · bitiş ${fmtDate(w.expiresAt)}</span></div>
-      <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift albümü</figure></div>
-      <div class="links"><div>Misafir: <a href="${lu}" target="_blank">${lu}</a></div><div>Albüm (çifte gönderin): <a href="${la}" target="_blank">${la}</a></div>
-      ${pk.wall ? `<div>Duvar: <a href="${link('wall', id, key)}" target="_blank">${link('wall', id, key)}</a></div>` : ''}</div>
-      <div class="row" style="margin-top:10px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button>
-      <button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">Kotayı +500 yap</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm bad" data-a="del">Sil</button></div></div>`; }).join('');
+      <span class="mut" style="font-size:.8rem">bitiş ${fmtDate(w.expiresAt)}</span></div>
+      <div class="stat-row"><i class="dot${w.uploadOpen ? '' : ' off'}"></i><span class="mut">${w.uploadOpen ? 'Yükleme açık' : 'Yükleme kapalı'}</span><span class="sp"></span><span class="mut">${w.photoCount || 0}/${w.quota} dosya</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <div class="tiles">
+        <a class="tile" href="${lu}" target="_blank" rel="noopener"><em>📷</em><span>Misafir</span><b>yükleme sayfası</b></a>
+        <a class="tile" href="${la}" target="_blank" rel="noopener"><em>💍</em><span>Albüm</span><b>çift görünümü</b></a>
+        ${pk.wall ? `<a class="tile" href="${link('wall', id, key)}" target="_blank" rel="noopener"><em>📺</em><span>Duvar</span><b>canlı ekran</b></a>` : ''}
+      </div>
+      <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift QR</figure></div>
+      <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
+      <details class="more"><summary>Diğer işlemler</summary><div class="row">
+      <button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">Kotayı +500 yap</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm bad" data-a="del">Sil</button></div></details></div>`; }).join('');
     $('#ls').querySelectorAll('.card').forEach(c => {
       const it = items.find(x => x.id === c.dataset.id);
       c.querySelector('[data-a=print]').onclick = () => printKit(it.w, it.id);
