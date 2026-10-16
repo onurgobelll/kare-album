@@ -3,50 +3,58 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#b4235a">
+<meta name="theme-color" content="#9a2e2a">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <title>Kare</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600&family=Fraunces:opsz,wght@9..144,600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400..600;1,9..144,400..600&family=Work+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-:root{--ink:#1d1b2c;--paper:#f6f4f8;--card:#fff;--ac:#b4235a;--mut:#6c6880;--line:#e3dfea;--ok:#1f8a5b;--bad:#c0392b}
+:root{--ink:#241e1b;--paper:#f6efe2;--card:#fffcf6;--ac:#9a2e2a;--ac2:#2e5e52;--mut:#8c8072;--line:#e4d9c7;--ok:#2e5e52;--bad:#b5502b;--r:14px;--r-sm:10px}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{margin:0}
-body{background:var(--paper);color:var(--ink);font:16px/1.5 'Bricolage Grotesque',system-ui,sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:600;letter-spacing:-.01em;margin:0 0 .4em;line-height:1.15}
-h1{font-size:2rem}h2{font-size:1.3rem}
+body{background:var(--paper);color:var(--ink);font:16px/1.55 'Work Sans',system-ui,sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:560;letter-spacing:-.015em;margin:0 0 .4em;line-height:1.1}
+h1{font-size:2.15rem}h2{font-size:1.3rem}
 a{color:var(--ac)}
 input,select,textarea,button{font:inherit;color:inherit}
-input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:8px;background:#fff}
+input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff}
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.btn:focus-within{outline:3px solid color-mix(in srgb,var(--ac) 45%,transparent);outline-offset:1px}
 label.f{display:block;margin:0 0 12px;font-size:.9rem;color:var(--mut)}
 label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
 .btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
 .btn.sm{padding:6px 12px;font-size:.85rem}
 .btn.bad{color:var(--bad)}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
 .wrap.wide{max-width:1100px}
-.card{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:16px;margin:0 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 14px}
 .mut{color:var(--mut)}.err{color:var(--bad)}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 .sp{flex:1}
 .chk{display:flex;gap:10px;align-items:flex-start;font-size:.85rem;color:var(--mut);margin:0 0 14px}
 .chk input{width:auto;margin-top:3px}
-.hero{padding:36px 0 18px}
+.hero{padding:40px 0 22px;position:relative}
+.hero p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:1.08rem;color:var(--mut);margin-top:-.1em}
+.hero::after{content:'';position:absolute;left:0;bottom:4px;width:52px;height:3px;background:var(--ac);border-radius:2px}
 .hero small{color:var(--ac);font-weight:600}
-.lang button{border:0;background:none;color:var(--mut);padding:2px 6px;cursor:pointer}
-.lang button.on{color:var(--ink);font-weight:600;text-decoration:underline}
+.lang{display:inline-flex;gap:2px}
+.lang button{border:0;background:none;color:var(--mut);padding:2px 7px;cursor:pointer;font-size:.85rem}
+.lang button.on{color:var(--ink);font-weight:600;text-decoration:underline;text-underline-offset:3px}
+.pk-opt{display:flex;align-items:center;gap:12px;cursor:pointer;position:relative}
+.pk-opt input{width:auto;accent-color:var(--ac);flex:none}
+.pk-opt:has(input:checked){border-color:var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--card))}
+.pk-opt .tag{position:absolute;top:-9px;right:14px;background:var(--ac);color:#fff;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:999px}
+.pk-opt b.price{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;white-space:nowrap}
 #qlist{list-style:none;padding:0;margin:14px 0 0}
 #qlist li{display:grid;grid-template-columns:1fr 90px 70px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
 #qlist span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 progress{width:100%;height:6px;accent-color:var(--ac)}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
-.ph{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:6px;overflow:hidden;background:#e9e5ef;cursor:pointer}
+.ph{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:6px;overflow:hidden;background:#ece2d0;cursor:pointer}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
 .ph .by{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 4px;font-size:.72rem;color:#fff;text-align:left;background:linear-gradient(transparent,rgba(0,0,0,.55));font-weight:400;overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
 .ph .play,.ph .fav,.ph .st{position:absolute;font-style:normal;color:#fff;font-size:.8rem}
@@ -61,7 +69,7 @@ progress{width:100%;height:6px;accent-color:var(--ac)}
 .tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
 .bar{position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:5}
 .modal{position:fixed;inset:0;background:rgba(20,16,30,.72);display:grid;place-items:center;padding:14px;z-index:50;overflow:auto}
-.modal>div{background:#fff;border-radius:16px;padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.modal>div{background:var(--card);border-radius:var(--r);padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
 .modal.lb>div{max-width:960px;background:#111;color:#fff;padding:12px}
 .lb .media{display:grid;place-items:center;min-height:200px}
 .lb img,.lb video{max-width:100%;max-height:68vh;border-radius:8px}
@@ -70,18 +78,19 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{text-align:left;
 .badge{font-size:.75rem;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-weight:600}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;z-index:99;font-size:.9rem}
 .links a{word-break:break-all;font-size:.8rem}
-.qrbox{display:flex;gap:14px;flex-wrap:wrap;margin:10px 0}.qrbox figure{margin:0;text-align:center;font-size:.75rem;color:var(--mut)}.qrbox img{width:110px;height:110px;image-rendering:pixelated}
+.qrbox{display:flex;gap:16px;flex-wrap:wrap;margin:10px 0}.qrbox figure{margin:0;text-align:center;font-size:.75rem;color:var(--mut)}
+.qrbox img{width:110px;height:110px;image-rendering:pixelated;background:#fff;padding:10px;box-shadow:0 0 0 1px var(--line),0 0 0 5px var(--card),0 0 0 6px var(--line);border-radius:4px;margin-bottom:8px}
 .stat-row{display:flex;align-items:center;gap:8px;margin:8px 0 4px;font-size:.8rem}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--ok);display:inline-block;flex:none}
 .dot.off{background:var(--mut)}
 .bar{height:6px;background:var(--line);border-radius:99px;overflow:hidden;margin:0 0 12px}
 .bar>i{display:block;height:100%;background:var(--ac)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 12px}
-.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border:1px solid var(--line);border-radius:14px;text-decoration:none;color:var(--ink);text-align:center}
-.tile:hover{border-color:var(--ac)}
+.tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border:1px solid var(--line);border-radius:var(--r-sm);text-decoration:none;color:var(--ink);text-align:center;transition:border-color .15s,background .15s}
+.tile:hover{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 5%,var(--card))}
 .tile em{font-style:normal;font-size:1.7rem;line-height:1}
 .tile span{font-size:.88rem;font-weight:600}
-.tile b{font-size:.62rem;font-weight:500;letter-spacing:.02em;color:var(--mut);text-transform:uppercase}
+.tile b{font-size:.72rem;font-weight:400;color:var(--mut)}
 details.more{margin-top:10px}
 details.more summary{cursor:pointer;color:var(--mut);font-size:.82rem;list-style:none}
 details.more summary::-webkit-details-marker{display:none}
@@ -879,7 +888,7 @@ function buy(ref) {
   if (ref) localStorage.ref = ref;
   logEv('buy_view');
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>${esc(BRAND)}</h1><p class="mut">Düğününüz için QR kodlu anı albümü. Ödemeden hemen sonra bağlantılarınız hazır olur.</p></div>
-  ${Object.entries(PK).map(([k, v], i) => `<label class="card row" style="cursor:pointer"><input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''} style="width:auto"><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quota} dosya · ${v.months} ay saklama${v.wall ? ' · canlı duvar' : ''}${v.ai ? ' · yapay zekâ seçimi' : ''}</span></span><b>${v.price} TL</b></label>`).join('')}
+  ${Object.entries(PK).map(([k, v], i) => `<label class="card pk-opt">${i === 1 ? '<span class="tag">Önerilen</span>' : ''}<input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''}><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quota} dosya · ${v.months} ay saklama${v.wall ? ' · canlı duvar' : ''}${v.ai ? ' · yapay zekâ seçimi' : ''}</span></span><b class="price">${v.price} TL</b></label>`).join('')}
   ${DEMO_WID ? `<p><a class="btn" href="#/u/${DEMO_WID}">Örnek galeriyi gör</a></p>` : ''}
   <div class="card"><label class="f">Çift adı (ör. Ayşe &amp; Mehmet)<input id="b1"></label>
   <label class="f">Düğün tarihi<input id="b6" type="date"></label>
