@@ -43,12 +43,13 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .hero{padding:40px 0 22px;position:relative}
 .hero p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:1.08rem;color:var(--mut);margin-top:-.1em}
 .hero::after{content:'';position:absolute;left:0;bottom:4px;width:52px;height:3px;background:var(--ac);border-radius:2px}
-.hero.has-bg{padding:58px 22px 36px;border-radius:var(--r);overflow:hidden;color:#fff}
-.hero.has-bg h1,.hero.has-bg p{color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.45)}
+.hero.has-bg{margin:14px calc(50% - 50vw) 26px;width:100vw;box-sizing:border-box;min-height:min(72vh,620px);padding:20vh 24px 36px;border-radius:0;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
+.hero.has-bg h1,.hero.has-bg p{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.5)}
 .hero.has-bg::after{background:#fff}
 .hero.modern{text-align:left}
 .hero .bgimg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:-2;border-radius:inherit;background-color:var(--line)}
-.hero .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(195deg,rgba(36,30,27,.25),rgba(36,30,27,.8))}
+.hero .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(36,30,27,.05) 0%,rgba(36,30,27,.2) 45%,rgba(36,30,27,.82) 100%)}
+@media (max-width:560px){.hero.has-bg{min-height:58vh;padding:16vh 18px 30px}}
 .hero small{color:var(--ac);font-weight:600}
 .lang{display:inline-flex;gap:2px}
 .lang button{border:0;background:none;color:var(--mut);padding:2px 7px;cursor:pointer;font-size:.85rem}
@@ -57,6 +58,16 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .pk-opt input{width:auto;accent-color:var(--ac);flex:none}
 .pk-opt:has(input:checked){border-color:var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--card))}
 .pk-opt .tag{position:absolute;top:-9px;right:14px;background:var(--ac);color:#fff;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:999px}
+.steps{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:0 0 18px}
+.step{border:1px solid var(--line);border-radius:var(--r-sm);padding:16px 14px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:5px;background:var(--card)}
+.step em{color:var(--ac);display:flex}
+.step b{font-family:'Fraunces',Georgia,serif;font-weight:560;font-size:1.02rem}
+.step span{font-size:.82rem;color:var(--mut)}
+.feat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin:0 0 20px}
+.feat{display:flex;gap:12px;align-items:flex-start}
+.feat em{color:var(--ac);flex:none;margin-top:2px}
+.feat b{display:block;font-size:.95rem}
+.feat span{font-size:.82rem;color:var(--mut)}
 .pk-opt b.price{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;white-space:nowrap}
 #qlist{list-style:none;padding:0;margin:14px 0 0}
 #qlist li{display:grid;grid-template-columns:36px 1fr 90px 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
@@ -93,6 +104,12 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .topbar{position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:5}
 .modal{position:fixed;inset:0;background:rgba(20,16,30,.72);display:grid;place-items:center;padding:14px;z-index:50;overflow:auto;animation:mfade .15s ease}
 .modal>div{background:var(--card);border-radius:var(--r);padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto;animation:mpop .18s cubic-bezier(.2,.9,.3,1)}
+.modal.wide>div{max-width:820px}
+.wish-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.wish{border:1px solid var(--line);border-radius:var(--r-sm);padding:16px;text-align:center}
+.wish em{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-style:normal;font-weight:600;font-size:.8rem;margin-bottom:8px}
+.wish p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:.95rem;margin:0 0 8px;color:var(--ink)}
+.wish b{font-size:.78rem;font-weight:500;color:var(--mut)}
 @keyframes mfade{from{opacity:0}to{opacity:1}}
 @keyframes mpop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .modal.lb>div{max-width:960px;background:#111;color:#fff;padding:12px}
@@ -201,6 +218,8 @@ const svgWrap = (n, d) => `<svg viewBox="0 0 24 24" width="${n}" height="${n}" f
 const icoCamera = n => svgWrap(n, '<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.3"/>');
 const icoRings = n => svgWrap(n, '<circle cx="9" cy="14" r="5.2"/><circle cx="15" cy="14" r="5.2"/><path d="M9 8.8V5l1.6-2M15 8.8V5l-1.6-2"/>');
 const icoScreen = n => svgWrap(n, '<rect x="3" y="4.5" width="18" height="12" rx="1.6"/><path d="M8 20h8M12 16.5V20"/><path d="M10.3 8.3v4.4l3.7-2.2Z" fill="currentColor" stroke="none"/>');
+const icoQR = n => svgWrap(n, '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2v2h-2zM14 19h2v2h-2zM19 19h2v2h-2z" fill="currentColor" stroke="none"/>');
+const icoShield = n => svgWrap(n, '<path d="M12 3l7 3v5c0 5-3 8-7 10-4-2-7-5-7-10V6z"/><path d="M8.5 12l2.3 2.3L15.5 9.5"/>');
 const app = $('#app');
 let cleanup = [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -568,7 +587,7 @@ async function album(wid, key) {
     <div class="topbar"><div class="row"><h2 id="ttl" style="margin:0"></h2><span class="badge" id="cnt"></span><span class="sp"></span>
       <button class="btn sm" id="bSel">Seç</button><button class="btn sm" id="bZip">ZIP indir</button>
       <details class="more" style="margin:0"><summary>Diğer</summary><div class="row" style="margin-top:8px">
-      <button class="btn sm" id="bSt">İstatistik</button>${pk.ai ? '<button class="btn sm" id="bPe">Kişiler</button>' : ''}<button class="btn sm" id="bTh">Teşekkür</button>
+      <button class="btn sm" id="bSt">İstatistik</button><button class="btn sm" id="bWi">Dilekler</button>${pk.ai ? '<button class="btn sm" id="bPe">Kişiler</button>' : ''}<button class="btn sm" id="bTh">Teşekkür</button>
       <button class="btn sm" id="bPr">Baskı sipariş</button>${pk.ai ? '<button class="btn sm" id="bHl">Highlight videosu</button>' : ''}
       ${pk.wall ? `<a class="btn sm" href="#/wall/${wid}/${key || ''}" target="_blank">Canlı duvar</a>` : ''}
       <button class="btn sm" id="bSet">Ayarlar</button></div></details></div></div>
@@ -700,13 +719,27 @@ async function album(wid, key) {
     await zipPhotos(l, w.title, t => $('#prog').textContent = t); toast('ZIP hazır');
   };
 
+  $('#bWi').onclick = () => {
+    const wishes = photos.filter(p => p.note && p.note.trim() && p.status !== 'hidden');
+    const initials = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+    modal(`<h2>Dilekler</h2>${wishes.length ? `<div class="wish-grid">${wishes.map(p => `<div class="wish"><em>${initials(p.name)}</em><p>${esc(p.note)}</p><b>${esc(p.name || 'Misafir')}</b></div>`).join('')}</div>` : '<p class="mut">Henüz not bırakan olmadı.</p>'}`, 'wide');
+  };
+
   $('#bSt').onclick = async () => {
     const by = {}; photos.forEach(p => { const k = p.name || 'Misafir'; by[k] = (by[k] || 0) + 1; });
     const rs = (await db.collection(`weddings/${wid}/rsvps`).get()).docs.map(d => d.data());
-    const yes = rs.filter(r => r.yes).reduce((a, r) => a + r.count, 0);
-    modal(`<h2>İstatistik</h2><p class="mut">${photos.length} dosya · ${Object.keys(by).length} misafir${rs.length ? ` · katılım: ${yes} kişi (${rs.length} yanıt)` : ''}</p>
+    const yes = rs.filter(r => r.yes).reduce((a, r) => a + r.count, 0), no = rs.filter(r => !r.yes).length;
+    const m = modal(`<h2>İstatistik</h2><p class="mut">${photos.length} dosya · ${Object.keys(by).length} misafir</p>
+      ${rs.length ? `<div class="card" style="margin:0 0 14px"><div class="row"><b style="font-size:1.1rem">${yes} kişi geliyor</b><span class="sp"></span><span class="mut">${no} yanıt “katılamıyorum”</span></div></div>` : ''}
       <table><tr><th>Misafir</th><th>Dosya</th></tr>${Object.entries(by).sort((a, b) => b[1] - a[1]).map(([k, v]) => `<tr><td>${esc(k)}</td><td>${v}</td></tr>`).join('')}</table>
-      ${rs.length ? `<h3 style="margin-top:14px">Katılım yanıtları</h3><table>${rs.map(r => `<tr><td>${esc(r.name)}</td><td>${r.yes ? r.count + ' kişi' : 'katılamıyor'}</td></tr>`).join('')}</table>` : ''}`);
+      ${rs.length ? `<h3 style="margin-top:14px">Katılım yanıtları</h3><table>${rs.map(r => `<tr><td>${esc(r.name)}</td><td>${r.yes ? r.count + ' kişi' : 'katılamıyor'}</td></tr>`).join('')}</table>
+      <button class="btn sm" id="csv" style="margin-top:10px">Katılım listesini indir (CSV)</button>` : ''}`);
+    const csv = m.querySelector('#csv');
+    if (csv) csv.onclick = () => {
+      const rows = [['İsim', 'Katılım', 'Kişi sayısı'], ...rs.map(r => [r.name || '', r.yes ? 'Evet' : 'Hayır', r.yes ? r.count : 0])];
+      const txt = '\uFEFF' + rows.map(r => r.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+      const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], {type: 'text/csv'})); a.download = `${slug(w.title)}-katilim.csv`; a.click();
+    };
   };
 
   $('#bTh').onclick = async () => {
@@ -1070,6 +1103,15 @@ function buy(ref) {
   if (ref) localStorage.ref = ref;
   logEv('buy_view');
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>${esc(BRAND)}</h1><p class="mut">Düğününüz için QR kodlu anı albümü. Ödemeden hemen sonra bağlantılarınız hazır olur.</p></div>
+  <div class="steps">
+    <div class="step"><em>${icoQR(26)}</em><b>1. QR okutun</b><span>Masadaki kartı telefonla okutun, uygulama indirmeye gerek yok</span></div>
+    <div class="step"><em>${icoCamera(26)}</em><b>2. Paylaşın</b><span>Çektiğiniz fotoğraf ve videoları anında yükleyin</span></div>
+    <div class="step"><em>${icoRings(26)}</em><b>3. Çift görsün</b><span>Tüm anılar tek bir albümde, çift için hazır</span></div>
+  </div>
+  <div class="feat-grid">
+    <div class="feat"><em>${icoShield(22)}</em><div><b>Güvenli indirme</b><span>Düğün sonrası tüm fotoğraf ve videoları tek tıkla ZIP olarak indirin</span></div></div>
+    <div class="feat"><em>${icoScreen(22)}</em><div><b>Canlı duvar</b><span>Yüklenen kareler salon ekranında anında akar (Plus ve üzeri)</span></div></div>
+  </div>
   ${Object.entries(PK).map(([k, v], i) => `<label class="card pk-opt">${i === 1 ? '<span class="tag">Önerilen</span>' : ''}<input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''}><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quotaGB} GB · ${v.months} ay saklama${v.wall ? ' · canlı duvar' : ''}${v.ai ? ' · yapay zekâ seçimi' : ''}</span></span><b class="price">${v.price} TL</b></label>`).join('')}
   ${DEMO_WID ? `<p><a class="btn" href="#/u/${DEMO_WID}">Örnek galeriyi gör</a></p>` : ''}
   <div class="card"><label class="f">Çift adı (ör. Ayşe &amp; Mehmet)<input id="b1"></label>
