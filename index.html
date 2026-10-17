@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#9a2e2a">
+<meta name="color-scheme" content="light">
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icon.svg">
 <title>Kare</title>
@@ -21,15 +22,17 @@ h1{font-size:2.15rem}h2{font-size:1.3rem}
 a{color:var(--ac)}
 input,select,textarea,button{font:inherit;color:inherit}
 input,select,textarea{width:100%;padding:11px 12px;border:1px solid var(--line);border-radius:var(--r-sm);background:#fff}
-input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,.btn:focus-within{outline:3px solid color-mix(in srgb,var(--ac) 45%,transparent);outline-offset:1px}
+input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible,a:focus-visible,.btn:focus-within{outline:3px solid color-mix(in srgb,var(--ac) 45%,transparent);outline-offset:1px}
 label.f{display:block;margin:0 0 12px;font-size:.9rem;color:var(--mut)}
 label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:11px 18px;border-radius:999px;border:1px solid var(--line);background:#fff;cursor:pointer;font-weight:600;text-decoration:none;color:var(--ink);transition:border-color .15s,background .15s,transform .08s}
+.btn:active{transform:scale(.97)}
 .btn.pri{background:var(--ac);border-color:var(--ac);color:#fff}
-.btn.sm{padding:6px 12px;font-size:.85rem}
+.btn.sm{min-height:0;padding:6px 12px;font-size:.85rem}
 .btn.bad{color:var(--bad)}
 .btn[disabled]{opacity:.5;pointer-events:none}
 .wrap{max-width:720px;margin:0 auto;padding:20px 16px 60px}
+.wrap p{max-width:62ch}
 .wrap.wide{max-width:1100px}
 .card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px;margin:0 0 14px}
 .mut{color:var(--mut)}.err{color:var(--bad)}
@@ -50,9 +53,14 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .pk-opt .tag{position:absolute;top:-9px;right:14px;background:var(--ac);color:#fff;font-size:.68rem;font-weight:600;padding:2px 9px;border-radius:999px}
 .pk-opt b.price{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;white-space:nowrap}
 #qlist{list-style:none;padding:0;margin:14px 0 0}
-#qlist li{display:grid;grid-template-columns:1fr 90px 70px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
-#qlist span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-progress{width:100%;height:6px;accent-color:var(--ac)}
+#qlist li{display:grid;grid-template-columns:36px 1fr 90px 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
+#qlist span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#qlist .th{width:36px;height:36px;border-radius:8px;object-fit:cover;background:var(--line);flex:none}
+#qlist em{font-style:normal;font-variant-numeric:tabular-nums;text-align:right}
+progress{width:100%;height:6px;accent-color:var(--ac);border:0;border-radius:99px;overflow:hidden;background:var(--line)}
+progress::-webkit-progress-bar{background:var(--line);border-radius:99px}
+progress::-webkit-progress-value{background:var(--ac);border-radius:99px}
+progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px}
 .ph{position:relative;aspect-ratio:1;border:0;padding:0;border-radius:6px;overflow:hidden;background:#ece2d0;cursor:pointer}
 .ph img{width:100%;height:100%;object-fit:cover;display:block}
@@ -60,16 +68,27 @@ progress{width:100%;height:6px;accent-color:var(--ac)}
 .ph .play,.ph .fav,.ph .st{position:absolute;font-style:normal;color:#fff;font-size:.8rem}
 .ph .play{inset:auto auto 22px 8px}.ph .fav{top:6px;right:8px;font-size:1.1rem;color:#ffd24a}
 .ph .st{top:6px;left:6px;background:rgba(0,0,0,.6);padding:1px 7px;border-radius:99px}
-.ph.pending{outline:3px solid #e8a317;outline-offset:-3px}.ph.hidden img{opacity:.35}
+.ph.pending img{filter:saturate(.55)}
+.ph.pending:after{content:'';position:absolute;top:7px;left:7px;width:9px;height:9px;border-radius:50%;background:#e8a317;box-shadow:0 0 0 2px rgba(255,255,255,.85)}
+.ph.hidden img{opacity:.35}
 .ph .ic{display:grid;place-items:center;height:100%;color:var(--mut)}
 .ph .ck{display:none;position:absolute;inset:0;background:color-mix(in srgb,var(--ac) 35%,transparent);border:3px solid var(--ac)}
+.ph .ck:after{content:'✓';position:absolute;top:6px;right:6px;width:20px;height:20px;border-radius:50%;background:var(--ac);color:#fff;font-size:.78rem;font-weight:700;display:flex;align-items:center;justify-content:center}
 .ph.sel .ck{display:block}
-.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px}
+.empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:44px 20px;text-align:center;color:var(--mut)}
+.empty em{font-style:normal;opacity:.55}
+.spin{width:28px;height:28px;border-radius:50%;border:3px solid var(--line);border-top-color:var(--ac);animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.modal>div{animation:none!important}.spin{animation-duration:1.6s}}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:4px 0 10px;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
 .tabs button{white-space:nowrap;border:1px solid var(--line);background:#fff;border-radius:999px;padding:6px 14px;cursor:pointer}
 .tabs button.on{background:var(--ink);color:#fff;border-color:var(--ink)}
-.bar{position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:5}
-.modal{position:fixed;inset:0;background:rgba(20,16,30,.72);display:grid;place-items:center;padding:14px;z-index:50;overflow:auto}
-.modal>div{background:var(--card);border-radius:var(--r);padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto}
+.topbar{position:sticky;top:0;background:var(--paper);padding:8px 0;z-index:5}
+.modal{position:fixed;inset:0;background:rgba(20,16,30,.72);display:grid;place-items:center;padding:14px;z-index:50;overflow:auto;animation:mfade .15s ease}
+.modal>div{background:var(--card);border-radius:var(--r);padding:18px;max-width:560px;width:100%;max-height:92vh;overflow:auto;animation:mpop .18s cubic-bezier(.2,.9,.3,1)}
+@keyframes mfade{from{opacity:0}to{opacity:1}}
+@keyframes mpop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .modal.lb>div{max-width:960px;background:#111;color:#fff;padding:12px}
 .lb .media{display:grid;place-items:center;min-height:200px}
 .lb img,.lb video{max-width:100%;max-height:68vh;border-radius:8px}
@@ -87,8 +106,8 @@ table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{text-align:left;
 .bar>i{display:block;height:100%;background:var(--ac)}
 .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:0 0 12px}
 .tile{display:flex;flex-direction:column;align-items:center;gap:4px;padding:16px 10px;border:1px solid var(--line);border-radius:var(--r-sm);text-decoration:none;color:var(--ink);text-align:center;transition:border-color .15s,background .15s}
-.tile:hover{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 5%,var(--card))}
-.tile em{font-style:normal;font-size:1.7rem;line-height:1}
+.tile:hover{border-color:var(--ac);background:color-mix(in srgb,var(--ac) 5%,var(--card));color:var(--ac)}
+.tile em{font-style:normal;display:flex}
 .tile span{font-size:.88rem;font-weight:600}
 .tile b{font-size:.72rem;font-weight:400;color:var(--mut)}
 details.more{margin-top:10px}
@@ -99,16 +118,20 @@ details.more[open] summary{margin-bottom:8px}
 /* canlı duvar */
 .wall{position:fixed;inset:0;background:#0d0b14;color:#fff;overflow:hidden}
 .wall #stage{position:absolute;inset:0}
-.slide{position:absolute;inset:0;display:grid;place-items:center;animation:fin 1s ease}
+.slide{position:absolute;inset:0;display:grid;place-items:center;animation:fin 1s ease;overflow:hidden}
 .slide img,.slide video{max-width:100%;max-height:100%;object-fit:contain}
-.slide .cap{position:absolute;left:0;right:0;bottom:0;padding:60px 40px 28px;background:linear-gradient(transparent,rgba(0,0,0,.75));font-size:1.6rem;font-family:'Fraunces',serif}
+.slide img{animation:kb 7s ease-out forwards}
+.slide .cap{position:absolute;left:0;right:0;bottom:0;padding:60px 40px 28px;background:linear-gradient(transparent,color-mix(in srgb,var(--ink,#1d1b2c) 85%,var(--ac,#9a2e2a) 15%));font-size:1.6rem;font-family:'Fraunces',serif}
 .slide .cap small{display:block;font-size:1rem;opacity:.8;font-family:inherit}
-.wtitle{position:absolute;top:18px;left:24px;font-family:'Fraunces',serif;font-size:1.3rem;z-index:3;text-shadow:0 1px 6px #000}
+.wtitle{position:absolute;top:18px;left:24px;z-index:3;text-shadow:0 1px 6px #000}
+.wtitle b{display:block;font-family:'Fraunces',serif;font-size:1.3rem;font-weight:560}
+.wtitle small{font-family:'Fraunces',serif;font-style:italic;opacity:.85;font-size:.9rem}
+@keyframes kb{from{transform:scale(1.001)}to{transform:scale(1.045)}}
 .wqr{position:absolute;right:18px;bottom:18px;z-index:3;background:#fff;color:#111;padding:8px;border-radius:12px;text-align:center;font-size:.7rem;width:130px}
 .wqr img{width:100%;image-rendering:pixelated}
 .fsb{position:absolute;top:14px;right:14px;z-index:3;opacity:.5}
 @keyframes fin{from{opacity:0}to{opacity:1}}
-@media (prefers-reduced-motion:reduce){.slide{animation:none}}
+@media (prefers-reduced-motion:reduce){.slide,.slide img{animation:none}}
 </style>
 </head>
 <body>
@@ -159,6 +182,10 @@ const logEv = (t, wid) => db.collection('events').add({t, wid: wid || null, at: 
 
 const $ = s => document.querySelector(s);
 const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const svgWrap = (n, d) => `<svg viewBox="0 0 24 24" width="${n}" height="${n}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+const icoCamera = n => svgWrap(n, '<path d="M4 8h3l1.5-2h7L17 8h3a1 1 0 0 1 1 1v9a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1Z"/><circle cx="12" cy="13" r="3.3"/>');
+const icoRings = n => svgWrap(n, '<circle cx="9" cy="14" r="5.2"/><circle cx="15" cy="14" r="5.2"/><path d="M9 8.8V5l1.6-2M15 8.8V5l-1.6-2"/>');
+const icoScreen = n => svgWrap(n, '<rect x="3" y="4.5" width="18" height="12" rx="1.6"/><path d="M8 20h8M12 16.5V20"/><path d="M10.3 8.3v4.4l3.7-2.2Z" fill="currentColor" stroke="none"/>');
 const app = $('#app');
 let cleanup = [];
 const sleep = ms => new Promise(r => setTimeout(r, ms));
@@ -172,11 +199,24 @@ const fmtDate = t => t ? (t.toDate ? t.toDate() : new Date(t)).toLocaleDateStrin
 const slug = s => String(s || 'misafir').toLowerCase().replace(/[^a-z0-9ğüşıöç]+/gi, '-').slice(0, 24);
 const ext = p => (p.split('.').pop() || 'bin').toLowerCase();
 
-function toast(m) { const d = document.createElement('div'); d.className = 'toast'; d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
+function toast(m) { const d = document.createElement('div'); d.className = 'toast'; d.setAttribute('role', 'status'); d.setAttribute('aria-live', 'polite'); d.textContent = m; document.body.appendChild(d); setTimeout(() => d.remove(), 2600); }
 function modal(html, cls = '') {
-  const m = document.createElement('div'); m.className = 'modal ' + cls; m.innerHTML = `<div>${html}</div>`;
-  m.addEventListener('click', e => { if (e.target === m) m.remove(); });
-  document.body.appendChild(m); cleanup.push(() => m.remove()); return m;
+  const prevFocus = document.activeElement;
+  const m = document.createElement('div'); m.className = 'modal ' + cls; m.innerHTML = `<div role="dialog" aria-modal="true" tabindex="-1">${html}</div>`;
+  const close = () => { Element.prototype.remove.call(m); document.removeEventListener('keydown', onKey); if (prevFocus && prevFocus.focus) prevFocus.focus(); };
+  const onKey = e => {
+    if (e.key === 'Escape') { close(); return; }
+    if (e.key !== 'Tab') return;
+    const f = [...m.querySelectorAll('button,a[href],input,select,textarea,[tabindex]:not([tabindex="-1"])')].filter(x => !x.disabled && x.offsetParent);
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { last.focus(); e.preventDefault(); }
+    else if (!e.shiftKey && document.activeElement === last) { first.focus(); e.preventDefault(); }
+  };
+  m.addEventListener('click', e => { if (e.target === m) close(); });
+  document.body.appendChild(m); document.addEventListener('keydown', onKey);
+  m.querySelector('[role=dialog]').focus();
+  cleanup.push(close); m.close = close; m.remove = close; return m;
 }
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return; io.unobserve(e.target);
@@ -215,6 +255,7 @@ async function route() {
   cleanup.forEach(f => { try { f(); } catch (e) {} }); cleanup = [];
   document.documentElement.style.removeProperty('--ac');
   const [k, a, b] = location.hash.slice(2).split('/');
+  const spin = setTimeout(() => { if (!app.innerHTML.trim()) app.innerHTML = '<div class="empty" aria-hidden="true"><div class="spin"></div></div>'; }, 220);
   try {
     if (k === 'u') await guest(a, 'u');
     else if (k === 'i') await guest(a, 'i');
@@ -227,6 +268,7 @@ async function route() {
     else if (k === 'admin') await admin();
     else buy();
   } catch (e) { console.error(e); app.innerHTML = `<div class="wrap"><p class="err">Hata: ${esc(e.message)}</p></div>`; }
+  finally { clearTimeout(spin); }
 }
 addEventListener('hashchange', route);
 
@@ -346,7 +388,7 @@ async function guest(wid, mode) {
     const liked = JSON.parse(localStorage.liked || '[]');
     const un = db.collection(`weddings/${wid}/photos`).where('status', '==', 'approved').orderBy('createdAt', 'desc').limit(80).onSnapshot(s => {
       const g = $('#gal'); if (!g) return;
-      g.innerHTML = s.docs.map(d => { const p = d.data(); return `<button class="ph" data-id="${d.id}"><img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" alt=""><b class="by">${esc(p.name || '')} · ♥ ${p.likes || 0}</b></button>`; }).join('');
+      g.innerHTML = s.docs.map(d => { const p = d.data(); return `<button class="ph" data-id="${d.id}" aria-label="${esc(p.name || 'Kare')}, ${p.likes || 0} beğeni"><img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" alt=""><b class="by">${esc(p.name || '')} · ♥ ${p.likes || 0}</b></button>`; }).join('');
       lazy(g);
       g.querySelectorAll('.ph').forEach(b => b.onclick = async () => {
         const d = s.docs.find(x => x.id === b.dataset.id), p = d.data(), url = await getUrl(p.path);
@@ -389,13 +431,14 @@ async function guest(wid, mode) {
   const queue = []; let running = 0, active = 0;
   const warn = e => { if (active) { e.preventDefault(); e.returnValue = t('leave'); } };
   addEventListener('beforeunload', warn); cleanup.push(() => removeEventListener('beforeunload', warn));
-  const pump = () => { while (running < 2 && queue.length) { const j = queue.shift(); running++; run(j).finally(() => { running--; pump(); }); } };
+  let runningVideo = false;
+  const pump = () => { const cap = runningVideo ? 1 : 2; while (running < cap && queue.length) { const j = queue.shift(); running++; if (j.isVideo) runningVideo = true; run(j).finally(() => { running--; if (j.isVideo) runningVideo = false; pump(); }); } };
   async function run(j) {
     for (let a = 0; a < 6; a++) {
       try {
         if (!navigator.onLine) await new Promise(r => addEventListener('online', r, {once: true}));
-        await uploadFile(wid, w, j, p => { j.li.querySelector('progress').value = p; });
-        j.li.querySelector('em').textContent = '✓ ' + t('done'); j.li.querySelector('progress').value = 1; active--; return;
+        await uploadFile(wid, w, j, p => { j.li.querySelector('progress').value = p; j.li.querySelector('em').textContent = Math.round(p * 100) + '%'; });
+        j.li.querySelector('em').textContent = '✓'; j.li.querySelector('progress').value = 1; active--; return;
       } catch (e) {
         console.warn(e);
         if (e.fatal) { j.li.querySelector('em').textContent = e.message === 'size' ? t('big') : t('badtype'); active--; return; }
@@ -411,9 +454,12 @@ async function guest(wid, mode) {
     db.doc(`weddings/${wid}/guests/${u.uid}`).set({name, email, createdAt: TS()}).catch(() => {});
     for (const f of files) {
       const id = db.collection('x').doc().id, li = document.createElement('li');
-      li.innerHTML = `<span>${esc(f.name || 'ses')}</span><progress max="1" value="0"></progress><em>${t('wait')}</em>`;
+      const isImg = (f.type || '').startsWith('image'), isVid = (f.type || '').startsWith('video');
+      let thumbSrc = ''; if (isImg) { try { thumbSrc = URL.createObjectURL(f); } catch (e) {} }
+      li.innerHTML = `${isImg ? `<img class="th" src="${thumbSrc}" alt="">` : `<span class="th" style="display:flex;align-items:center;justify-content:center;font-size:.8rem">${isVid ? '🎞' : '🎙'}</span>`}<span class="nm">${esc(f.name || 'ses')}</span><progress max="1" value="0"></progress><em>${t('wait')}</em>`;
       $('#qlist').prepend(li); active++;
-      queue.push({id, file: f, name, note, li}); pump();
+      if (isVid && f.size > 50 * 1048576) toast('Büyük video: yüklemesi bağlantınıza göre birkaç dakika sürebilir');
+      queue.push({id, file: f, name, note, li, isVideo: isVid}); pump();
     }
   }
   $('#fi').onchange = e => { add([...e.target.files]); e.target.value = ''; };
@@ -436,16 +482,20 @@ async function guest(wid, mode) {
 
 async function zipPhotos(list, title, prog) {   // 120'şer dosyalık ZIP parçaları
   const per = 120, parts = Math.ceil(list.length / per);
+  let failed = 0;
   for (let n = 0; n < parts; n++) {
     const z = new JSZip(), ch = list.slice(n * per, (n + 1) * per);
     for (let i = 0; i < ch.length; i++) {
       prog(`ZIP ${n + 1}/${parts} hazırlanıyor: ${i + 1}/${ch.length}`);
-      const r = await fetch(await getUrl(ch[i].path)); z.file(`${slug(ch[i].name)}_${ch[i].id.slice(0, 5)}.${ext(ch[i].path)}`, await r.blob());
+      try {
+        const r = await fetch(await getUrl(ch[i].path)); if (!r.ok) throw new Error('fetch');
+        z.file(`${slug(ch[i].name)}_${ch[i].id.slice(0, 5)}.${ext(ch[i].path)}`, await r.blob());
+      } catch (e) { console.error(e); failed++; }
     }
     const b = await z.generateAsync({type: 'blob', compression: 'STORE'});
     const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${slug(title)}-${n + 1}.zip`; a.click();
   }
-  prog('');
+  prog(failed ? `${failed} dosya indirilemedi, ZIP'e eklenmedi` : '');
 }
 const ham = (a, b) => { let n = 0; for (const [x, y] of [[parseInt(a.slice(0, 8), 16), parseInt(b.slice(0, 8), 16)], [parseInt(a.slice(8), 16), parseInt(b.slice(8), 16)]]) { let v = (x ^ y) >>> 0; while (v) { v &= v - 1; n++; } } return n; };
 async function loadFaceApi() {
@@ -491,15 +541,16 @@ async function album(wid, key) {
   const pk = PK[w.pkg] || PK.basic;
   let photos = [], filter = 'all', q = '', sel = new Set(), selMode = false;
   app.innerHTML = `<div class="wrap wide">
-    <div class="bar"><div class="row"><h2 id="ttl" style="margin:0"></h2><span class="badge" id="cnt"></span><span class="sp"></span>
+    <div class="topbar"><div class="row"><h2 id="ttl" style="margin:0"></h2><span class="badge" id="cnt"></span><span class="sp"></span>
       <button class="btn sm" id="bSel">Seç</button><button class="btn sm" id="bZip">ZIP indir</button>
+      <details class="more" style="margin:0"><summary>Diğer</summary><div class="row" style="margin-top:8px">
       <button class="btn sm" id="bSt">İstatistik</button>${pk.ai ? '<button class="btn sm" id="bPe">Kişiler</button>' : ''}<button class="btn sm" id="bTh">Teşekkür</button>
       <button class="btn sm" id="bPr">Baskı sipariş</button>${pk.ai ? '<button class="btn sm" id="bHl">Highlight videosu</button>' : ''}
       ${pk.wall ? `<a class="btn sm" href="#/wall/${wid}/${key || ''}" target="_blank">Canlı duvar</a>` : ''}
-      <button class="btn sm" id="bSet">Ayarlar</button></div>
-      <div class="row" style="margin-top:8px"><input id="srch" placeholder="Ara: isim, not, pasta, dans, gelin…" style="max-width:320px">
+      <button class="btn sm" id="bSet">Ayarlar</button></div></details></div></div>
+    <div class="row" style="margin:10px 0"><input id="srch" placeholder="Ara: isim, not, pasta, dans, gelin…" style="max-width:320px">
       <span id="selbar" class="row" hidden><button class="btn sm" data-a="approved">Onayla</button><button class="btn sm" data-a="hidden">Gizle</button><button class="btn sm" data-a="fav">★ Favori</button><button class="btn sm bad" data-a="del">Sil</button></span></div>
-      <div class="tabs" id="tabs"></div><div id="prog" class="mut"></div><div id="extra"></div></div>
+    <div class="tabs" id="tabs" role="tablist"></div><div id="prog" class="mut" aria-live="polite"></div><div id="extra"></div>
     <div class="grid" id="grid"></div></div>`;
 
   const tabs = [['all', 'Hepsi'], ['pending', 'Onay bekleyen'], ['fav', 'Favoriler'], ['video', 'Video/Ses']];
@@ -538,16 +589,16 @@ async function album(wid, key) {
     $('#ttl').textContent = w.title;
     const vis = photos.filter(p => p.status !== 'hidden').length;
     $('#cnt').textContent = `${vis} dosya · ${pk.n}${w.quota ? ' · kota ' + (w.photoCount || 0) + '/' + w.quota : ''}`;
-    $('#tabs').innerHTML = allTabs().map(([k, n]) => `<button data-k="${k}" class="${k === filter ? 'on' : ''}">${n}${k === 'pending' ? ' (' + photos.filter(p => p.status === 'pending').length + ')' : ''}</button>`).join('');
+    $('#tabs').innerHTML = allTabs().map(([k, n]) => `<button data-k="${k}" class="${k === filter ? 'on' : ''}" role="tab" aria-selected="${k === filter}">${n}${k === 'pending' ? ' (' + photos.filter(p => p.status === 'pending').length + ')' : ''}</button>`).join('');
     $('#tabs').querySelectorAll('button').forEach(b => b.onclick = () => { filter = b.dataset.k; draw(); });
     if (filter === 'dupes') { const n = dupeSet().size; $('#extra').innerHTML = n ? `<p class="mut">Birbirine çok benzeyen ${n} yedek kare. Her grupta en iyi kare kalır.</p><button class="btn sm" id="hd">Bu ${n} tekrarı gizle</button>` : '<p class="mut">Tekrar bulunamadı.</p>'; const hb = $('#hd'); if (hb) hb.onclick = () => act('hidden', photos.filter(p => dupeSet().has(p.id))); }
     else $('#extra').innerHTML = '';
     const l = list(), g = $('#grid');
-    g.innerHTML = l.length ? l.map(p => `<button class="ph ${p.status} ${sel.has(p.id) ? 'sel' : ''}" data-id="${p.id}">
+    g.innerHTML = l.length ? l.map(p => `<button class="ph ${p.status} ${sel.has(p.id) ? 'sel' : ''}" data-id="${p.id}" aria-label="${esc(p.name || 'Kare')}${selMode ? (sel.has(p.id) ? ', seçili' : ', seçilmedi') : ''}">
       ${p.type === 'audio' ? '<span class="ic">Ses</span>' : `<img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" alt="">`}
       ${p.type === 'video' ? '<i class="play">▶</i>' : ''}<b class="by">${esc(p.name || '')}</b>${p.fav ? '<i class="fav">★</i>' : ''}
       ${p.status !== 'approved' ? `<i class="st">${p.status === 'pending' ? 'Bekliyor' : 'Gizli'}</i>` : ''}<span class="ck"></span></button>`).join('')
-      : '<p class="mut">Bu görünümde dosya yok. Misafirler QR kodu okutunca burada belirir.</p>';
+      : `<div class="empty"><em>${icoCamera(32)}</em><p class="mut" style="margin:0">Bu görünümde dosya yok.<br>Misafirler QR kodu okutunca burada belirir.</p></div>`;
     lazy(g);
     g.querySelectorAll('.ph').forEach(b => b.onclick = () => {
       if (selMode) { sel.has(b.dataset.id) ? sel.delete(b.dataset.id) : sel.add(b.dataset.id); b.classList.toggle('sel'); }
@@ -576,8 +627,16 @@ async function album(wid, key) {
   $('#selbar').querySelectorAll('button').forEach(b => b.onclick = () => { const it = photos.filter(p => sel.has(p.id)); if (!it.length) return toast('Önce dosya seçin'); act(b.dataset.a, it).then(() => { sel.clear(); draw(); }); });
 
   const dl = async (p, name) => {
-    const r = await fetch(await getUrl(p.path)); const b = await r.blob();
-    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name || `${slug(p.name)}_${p.id.slice(0, 5)}.${ext(p.path)}`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    try {
+      const url = await getUrl(p.path);
+      const r = await fetch(url); if (!r.ok) throw new Error('fetch ' + r.status);
+      const b = await r.blob();
+      const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = name || `${slug(p.name)}_${p.id.slice(0, 5)}.${ext(p.path)}`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    } catch (e) {
+      console.error(e);
+      try { window.open(await getUrl(p.path), '_blank'); toast('Tarayıcı doğrudan indirmedi, dosya yeni sekmede açıldı — oradan kaydedin'); }
+      catch (e2) { toast('İndirme başarısız, tekrar deneyin'); }
+    }
   };
 
   function open(id, l) {
@@ -588,11 +647,12 @@ async function album(wid, key) {
       m.firstChild.innerHTML = `<div class="media">${p.type === 'video' ? `<video src="${url}" controls playsinline autoplay></video>` : p.type === 'audio' ? `<audio src="${url}" controls autoplay></audio>` : `<img src="${url}" alt="">`}</div>
         <p style="margin:8px 0 2px"><b>${esc(p.name || '')}</b> ${p.note ? '— ' + esc(p.note) : ''}</p>
         <p class="mut" style="margin:0 0 8px;font-size:.8rem">${fmtDate(p.createdAt)} · ♥ ${p.likes || 0}${p.tags && p.tags.length ? ' · ' + esc(p.tags.slice(0, 6).join(', ')) : ''}${p.blur ? ' · bulanık' : ''}</p>
-        <div class="row"><button class="btn sm" id="p">←</button><button class="btn sm" id="n">→</button><span class="sp"></span>
+        <div class="row"><button class="btn sm" id="p" aria-label="Önceki kare (sol ok)">←</button><button class="btn sm" id="n" aria-label="Sonraki kare (sağ ok)">→</button><span class="sp"></span>
         <button class="btn sm" id="f">${p.fav ? '★ Favoriden çıkar' : '☆ Favori'}</button>
         <button class="btn sm" id="s">${p.status === 'approved' ? 'Gizle' : 'Onayla'}</button>
         <button class="btn sm" id="d">İndir</button><button class="btn sm bad" id="x">Sil</button></div>`;
       const q$ = s => m.querySelector(s);
+      const img = m.querySelector('img,video'); if (img) img.setAttribute(img.tagName === 'IMG' ? 'alt' : 'aria-label', p.name || 'Kare');
       q$('#p').onclick = () => { i = (i - 1 + l.length) % l.length; show(); };
       q$('#n').onclick = () => { i = (i + 1) % l.length; show(); };
       q$('#f').onclick = () => db.doc(`weddings/${wid}/photos/${p.id}`).update({fav: !p.fav}).then(() => { p.fav = !p.fav; show(); });
@@ -601,6 +661,13 @@ async function album(wid, key) {
       q$('#x').onclick = async () => { if (confirm('Kalıcı silinsin mi?')) { await doDel(p); m.remove(); } };
     };
     const m = modal('', 'lb'); show();
+    const navKey = e => {
+      if (e.target.closest('input,textarea,select')) return;
+      if (e.key === 'ArrowLeft') { i = (i - 1 + l.length) % l.length; show(); }
+      else if (e.key === 'ArrowRight') { i = (i + 1) % l.length; show(); }
+    };
+    document.addEventListener('keydown', navKey);
+    const baseClose = m.close; m.close = m.remove = () => { document.removeEventListener('keydown', navKey); baseClose(); };
   }
 
   $('#bZip').onclick = async () => {
@@ -695,7 +762,7 @@ async function album(wid, key) {
     const m = modal(`<h2>Ayarlar</h2>
       <label class="f">Başlık<input id="s1" value="${esc(w.title)}"></label>
       <label class="f">Karşılama mesajı<input id="s2" value="${esc(w.welcome || '')}"></label>
-      <label class="f">Tema rengi<input id="s3" type="color" value="${esc((w.theme && w.theme.color) || '#b4235a')}"></label>
+      <label class="f">Tema rengi<input id="s3" type="color" value="${esc((w.theme && w.theme.color) || '#9a2e2a')}"></label>
       <label class="chk"><input type="checkbox" id="o1" ${w.uploadOpen ? 'checked' : ''}><span>Yükleme açık</span></label>
       <label class="chk"><input type="checkbox" id="o2" ${w.moderation ? 'checked' : ''}><span>Moderasyon: onaylamadığım dosya galeride ve duvarda görünmesin</span></label>
       <label class="chk"><input type="checkbox" id="o3" ${w.guestGallery ? 'checked' : ''}><span>Misafirler onaylı galeriyi görsün ve beğensin</span></label>
@@ -727,7 +794,7 @@ async function wall(wid, key) {
     if (key) await db.doc(`weddings/${wid}/access/${u.uid}`).set({key});
     await db.collection(`weddings/${wid}/photos`).limit(1).get();
   } catch (e) { return keyForm(wid, !!key, 'wall'); }
-  app.innerHTML = `<div class="wall"><div class="wtitle">${esc(w.title)}</div><div id="stage"></div>
+  app.innerHTML = `<div class="wall"><div class="wtitle"><b>${esc(w.title)}</b>${w.eventDate ? `<small>${fmtDate(w.eventDate)}</small>` : ''}</div><div id="stage"></div>
     <div class="wqr"><img src="${qrUrl(guestLink(w, wid), 5)}" alt=""><span>Fotoğraf yükleyin</span></div><button class="btn sm fsb" id="fs">Tam ekran</button></div>`;
   $('#fs').onclick = () => { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); $('#fs').remove(); };
   let items = [], fresh = [], idx = 0, first = true, alive = true;
@@ -755,17 +822,24 @@ async function wall(wid, key) {
 
 /* ===== Yönetim paneli (satıcı / fotoğrafçı) ===== */
 function printKit(w, wid) {
-  const g = qrUrl(guestLink(w, wid), 12), name = esc(w.title), c = (w.theme && w.theme.color) || '#b4235a';
+  const g = qrUrl(guestLink(w, wid), 12), name = esc(w.title), c = (w.theme && w.theme.color) || '#9a2e2a';
   const win = window.open('', '_blank');
-  win.document.write(`<!doctype html><title>QR kartları</title><style>
-  @page{size:A4;margin:10mm}body{font-family:Georgia,serif;margin:0;color:#1d1b2c}
-  .sign{height:130mm;border:2px solid ${c};border-radius:6mm;text-align:center;padding:12mm;margin-bottom:8mm;page-break-inside:avoid}
-  .sign h1{font-size:30pt;margin:0 0 4mm}.sign img{width:70mm}.sign p{font-size:16pt;margin:4mm 0 0}
-  .cards{display:grid;grid-template-columns:1fr 1fr;gap:6mm}.card{border:1px solid ${c};border-radius:4mm;text-align:center;padding:6mm;height:70mm;break-inside:avoid}
-  .card img{width:36mm}.card h2{font-size:12pt;margin:0 0 2mm}.card p{font-size:9pt;margin:2mm 0 0}</style>
-  <div class="sign"><h1>${name}</h1><img src="${g}"><p>Telefonunuzun kamerasını okutun,<br>fotoğraf ve videolarınızı bize gönderin.</p></div>
-  <div class="cards">${Array(6).fill(`<div class="card"><h2>${name}</h2><img src="${g}"><p>Kareleri bizimle paylaşın</p></div>`).join('')}</div>
-  <script>onload=()=>setTimeout(print,400)<\/script>`);
+  win.document.write(`<!doctype html><title>QR kartları</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+  @page{size:A4;margin:10mm}body{font-family:'Work Sans',system-ui,sans-serif;margin:0;color:#241e1b;background:#fff}
+  h1,h2{font-family:'Fraunces',Georgia,serif;font-weight:560;letter-spacing:-.01em;margin:0}
+  .frame{box-shadow:0 0 0 1px #e4d9c7,0 0 0 7px #fff,0 0 0 8px #e4d9c7;border-radius:6px;display:inline-block;padding:10px;background:#fff}
+  .rule{width:46px;height:3px;background:${c};border-radius:2px;margin:5mm auto 0}
+  .sign{height:130mm;border:1.5px solid ${c};border-radius:6mm;text-align:center;padding:14mm 12mm;margin-bottom:8mm;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm}
+  .sign h1{font-size:30pt}.sign .frame img{width:58mm;height:58mm}.sign p{font-size:14pt;color:#5c5349;margin:0}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
+  .card{border:1px solid #e4d9c7;border-radius:4mm;text-align:center;padding:7mm;height:72mm;break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3mm}
+  .card .frame{padding:5px}.card .frame img{width:30mm;height:30mm}.card h2{font-size:12.5pt}.card p{font-size:9pt;color:#5c5349;margin:0}</style>
+  <div class="sign"><h1>${name}</h1><div class="rule"></div><div class="frame"><img src="${g}" alt=""></div><p>Telefonunuzun kamerasını okutun,<br>fotoğraf ve videolarınızı bize gönderin.</p></div>
+  <div class="cards">${Array(6).fill(`<div class="card"><h2>${name}</h2><div class="frame"><img src="${g}" alt=""></div><p>Kareleri bizimle paylaşın</p></div>`).join('')}</div>
+  <script>let p=0;const go=()=>{if(!p){p=1;print()}};(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(go,250));setTimeout(go,1600)<\/script>`);
   win.document.close();
 }
 
@@ -802,7 +876,7 @@ async function admin() {
       const id = rid(22), key = rid(12), pk = PK[g('#a3')], d = g('#a2') ? new Date(g('#a2')) : new Date();
       const exp = new Date(d); exp.setMonth(exp.getMonth() + pk.months);
       await db.doc('weddings/' + id).set({title, pkg: g('#a3'), quota: pk.quota, photoCount: 0, ownerUid: u.uid,
-        uploadOpen: true, moderation: false, guestGallery: false, theme: {color: '#b4235a'}, welcome: '', brand: g('#a5') ? {name: g('#a5')} : null, slug: slug || null, invite: null,
+        uploadOpen: true, moderation: false, guestGallery: false, theme: {color: '#9a2e2a'}, welcome: '', brand: g('#a5') ? {name: g('#a5')} : null, slug: slug || null, invite: null,
         createdAt: TS(), eventDate: firebase.firestore.Timestamp.fromDate(d), expiresAt: firebase.firestore.Timestamp.fromDate(exp)});
       await db.doc(`weddings/${id}/secret/k`).set({key, coupleEmail: g('#a4') || null});
       if (slug) await db.doc('slugs/' + slug).set({wid: id});
@@ -811,7 +885,7 @@ async function admin() {
   };
   async function load() {
     const s = await db.collection('weddings').where('ownerUid', '==', u.uid).orderBy('createdAt', 'desc').get();
-    if (!s.size) { $('#ls').innerHTML = '<p class="mut">Henüz düğün yok. “Yeni düğün” ile başlayın; QR ve albüm anahtarı otomatik üretilir.</p>'; return; }
+    if (!s.size) { $('#ls').innerHTML = `<div class="empty"><em>${icoRings(32)}</em><p class="mut" style="margin:0">Henüz düğün yok.<br>“Yeni düğün” ile başlayın; QR ve albüm anahtarı otomatik üretilir.</p></div>`; return; }
     const items = await Promise.all(s.docs.map(async d => ({id: d.id, w: d.data(), key: (await db.doc(`weddings/${d.id}/secret/k`).get()).data()?.key, newOrders: (await db.collection(`weddings/${d.id}/orders`).where('status', '==', 'new').get()).size})));
     $('#ls').innerHTML = items.map(({id, w, key, newOrders}) => { const pk = PK[w.pkg] || PK.basic; const lu = guestLink(w, id), la = link('a', id, key);
       const pct = Math.min(100, Math.round(((w.photoCount || 0) / w.quota) * 100));
@@ -820,9 +894,9 @@ async function admin() {
       <div class="stat-row"><i class="dot${w.uploadOpen ? '' : ' off'}"></i><span class="mut">${w.uploadOpen ? 'Yükleme açık' : 'Yükleme kapalı'}</span><span class="sp"></span><span class="mut">${w.photoCount || 0}/${w.quota} dosya</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="tiles">
-        <a class="tile" href="${lu}" target="_blank" rel="noopener"><em>📷</em><span>Misafir</span><b>yükleme sayfası</b></a>
-        <a class="tile" href="${la}" target="_blank" rel="noopener"><em>💍</em><span>Albüm</span><b>çift görünümü</b></a>
-        ${pk.wall ? `<a class="tile" href="${link('wall', id, key)}" target="_blank" rel="noopener"><em>📺</em><span>Duvar</span><b>canlı ekran</b></a>` : ''}
+        <a class="tile" href="${lu}" target="_blank" rel="noopener"><em>${icoCamera(28)}</em><span>Misafir</span><b>yükleme sayfası</b></a>
+        <a class="tile" href="${la}" target="_blank" rel="noopener"><em>${icoRings(28)}</em><span>Albüm</span><b>çift görünümü</b></a>
+        ${pk.wall ? `<a class="tile" href="${link('wall', id, key)}" target="_blank" rel="noopener"><em>${icoScreen(28)}</em><span>Duvar</span><b>canlı ekran</b></a>` : ''}
       </div>
       <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift QR</figure></div>
       <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
