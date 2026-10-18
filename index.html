@@ -45,12 +45,12 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .hero::after{content:'';position:absolute;left:0;bottom:4px;width:52px;height:3px;background:var(--ac);border-radius:2px}
 .hero.has-bg{--ww:720px;margin:14px calc(50% - 50vw) 26px;width:100vw;box-sizing:border-box;min-height:min(72vh,620px);padding:20vh max(20px,calc((100vw - var(--ww)) / 2 + 16px)) 36px;border-radius:0;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
 .hero.has-bg h1,.hero.has-bg p{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.5)}
-.hero.has-bg::after{background:#fff}
+.hero.has-bg::after{background:#fff;left:max(20px,calc((100vw - var(--ww)) / 2 + 16px))}
 .wrap.wide .hero.has-bg{--ww:1100px}
 .hero.modern{text-align:left}
 .hero .bgimg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:-2;border-radius:inherit;background-color:var(--line)}
 .hero .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(36,30,27,.05) 0%,rgba(36,30,27,.2) 45%,rgba(36,30,27,.82) 100%)}
-@media (max-width:560px){.hero.has-bg{min-height:58vh;padding:16vh 18px 30px}}
+@media (max-width:560px){.hero.has-bg{min-height:58vh;padding:16vh 18px 30px}.hero.has-bg::after{left:18px}}
 .hero small{color:var(--ac);font-weight:600}
 .lang{display:inline-flex;gap:2px}
 .lang button{border:0;background:none;color:var(--mut);padding:2px 7px;cursor:pointer;font-size:.85rem}
@@ -122,6 +122,7 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .demo-stats b{display:block;font-family:'Fraunces',Georgia,serif;font-size:1.6rem;font-weight:560;color:var(--ac);line-height:1.1}
 .demo-stats span{font-size:.75rem;color:var(--mut)}
 @media (max-width:560px){.demo-stats{grid-template-columns:repeat(2,1fr)}}
+.ph.broken::before{content:'⚠';position:absolute;inset:0;display:grid;place-items:center;color:var(--mut);font-size:1.2rem}
 .ph .vbadge{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.7rem;display:grid;place-items:center}
 .demo-cta{text-align:center;padding:28px 18px;margin-top:28px}
 .demo-cta p{margin:0 auto 14px}
@@ -290,7 +291,9 @@ function modal(html, cls = '') {
 }
 const io = new IntersectionObserver(es => es.forEach(e => {
   if (!e.isIntersecting) return; io.unobserve(e.target);
-  const p = e.target.dataset.p; if (p) getUrl(p).then(u => e.target.src = u).catch(() => {});
+  const el = e.target, p = el.dataset.p, fb = el.dataset.f;
+  const broken = () => { const b = el.closest('.ph'); if (b) { b.classList.add('broken'); b.dispatchEvent(new CustomEvent('broken', {bubbles: true})); } };
+  if (p) getUrl(p).then(u => el.src = u).catch(() => (fb && fb !== p ? getUrl(fb).then(u => el.src = u) : Promise.reject()).catch(broken));
 }), {rootMargin: '300px'});
 const lazy = root => root.querySelectorAll('img[data-p]').forEach(i => io.observe(i));
 const lazyBg = root => root.querySelectorAll('[data-bgp]').forEach(async el => { try { el.style.backgroundImage = `url(${await getUrl(el.dataset.bgp)})`; } catch (e) {} });
@@ -1099,7 +1102,7 @@ async function demo(widArg) {
     <div class="hero${bg ? ' has-bg' : ''}">${bg ? `<div class="bgimg" data-bgp="${esc(bg)}"></div>` : ''}<h1>${esc(w.title)}</h1><p${bg ? '' : ' class="mut"'}>${esc(sub)}</p></div>
     ${media.length ? '' : '<!--'}<div class="demo-stats"><div><b>${media.length - vids}</b><span>fotoğraf</span></div><div><b>${vids}</b><span>video</span></div><div><b>${guests}</b><span>misafir paylaştı</span></div><div><b>${wishes.length}</b><span>dilek</span></div></div>${media.length ? '' : '-->'}
     <h2>Misafirlerin gözünden</h2>
-    ${media.length ? `<div class="grid" id="dg">${media.map((p, i) => `<button class="ph" data-i="${i}" aria-label="${esc(p.name || 'Kare')}"><img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" alt="">${p.type === 'video' ? '<span class="vbadge">▶</span>' : ''}<b class="by">${esc(p.name || '')}</b></button>`).join('')}</div>`
+    ${media.length ? `<div class="grid" id="dg">${media.map((p, i) => `<button class="ph" data-i="${i}" aria-label="${esc(p.name || 'Kare')}"><img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" data-f="${p.type === 'image' ? esc(p.path) : ''}" alt="">${p.type === 'video' ? '<span class="vbadge">▶</span>' : ''}<b class="by">${esc(p.name || '')}</b></button>`).join('')}</div>`
       : `<div class="empty"><em>${icoCamera(32)}</em><p class="mut" style="margin:0">Bu albümde henüz gösterilecek onaylı kare yok.</p></div>`}
     ${wishes.length ? `<h2 style="margin-top:28px">Sevgi dolu mesajlar</h2><div class="wish-grid">${wishes.map(p => `<div class="wish"><em>${esc(ini(p.name))}</em><p>${esc(p.note)}</p><b>${esc(p.name || 'Misafir')}</b></div>`).join('')}</div>` : ''}
     <h2 style="margin-top:28px">Nasıl çalışır?</h2>
@@ -1111,6 +1114,7 @@ async function demo(widArg) {
     <div class="card demo-cta"><h2>Kendi albümünüzü oluşturun</h2><p class="mut">Ödemeden hemen sonra QR kodunuz ve albüm bağlantınız hazır. Misafirleriniz uygulama indirmeden yükler.</p><a class="btn pri" href="#/buy">Paketleri gör</a></div>
   </div>`;
   lazy(app); lazyBg(app);
+  const dg = $('#dg'); if (dg) dg.addEventListener('broken', e => e.target.closest('.ph').remove());
   app.querySelectorAll('#dg .ph').forEach(b => b.onclick = async () => {
     const p = media[+b.dataset.i];
     try { const url = await getUrl(p.path);
