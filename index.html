@@ -537,15 +537,15 @@ async function guest(wid, mode) {
       try {
         pr.textContent = t('scan') + '…'; await loadFaceApi();
         const si = new Image(); si.src = URL.createObjectURL(f); await si.decode();
-        const me = await faceapi.detectSingleFace(si, new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .5})).withFaceLandmarks().withFaceDescriptor();
+        const me = await faceapi.detectSingleFace(faceFit(si), new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .4})).withFaceLandmarks().withFaceDescriptor();
         if (!me) { pr.textContent = t('noface'); return; }
         const ds = (await db.collection(`weddings/${wid}/photos`).where('status', '==', 'approved').orderBy('createdAt', 'desc').limit(600).get()).docs.filter(d => d.data().type === 'image');
         $('#sfs').hidden = false; let n = 0;
         for (let i = 0; i < ds.length && !stop; i++) {
           pr.textContent = `${t('scan')} ${i + 1}/${ds.length} · ${n} ${t('found')}`;
-          const p = ds[i].data(), im = new Image(); im.crossOrigin = 'anonymous'; im.src = await getUrl(p.thumbPath || p.path); await im.decode().catch(() => {});
-          const fs = await faceapi.detectAllFaces(im, new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .45})).withFaceLandmarks().withFaceDescriptors();
-          if (fs.some(x => faceapi.euclideanDistance(x.descriptor, me.descriptor) < .5)) {
+          const p = ds[i].data(), im = new Image(); im.crossOrigin = 'anonymous'; im.src = await getUrl(p.thumbPath || p.path); if (!(await im.decode().then(() => true, () => false))) continue;
+          const fs = await faceapi.detectAllFaces(faceFit(im), new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .45})).withFaceLandmarks().withFaceDescriptors();
+          if (fs.some(x => faceapi.euclideanDistance(x.descriptor, me.descriptor) < .55)) {
             n++; const b = document.createElement('button'); b.className = 'ph'; b.innerHTML = `<img src="${im.src}" alt="">`;
             b.onclick = async () => window.open(await getUrl(p.path), '_blank'); out.appendChild(b);
           }
@@ -693,8 +693,17 @@ async function zipPhotos(list, title, prog) {   // 120'şer dosyalık ZIP parça
   prog(failed ? `${failed} dosya indirilemedi, ZIP'e eklenmedi` : '');
 }
 const ham = (a, b) => { let n = 0; for (const [x, y] of [[parseInt(a.slice(0, 8), 16), parseInt(b.slice(0, 8), 16)], [parseInt(a.slice(8), 16), parseInt(b.slice(8), 16)]]) { let v = (x ^ y) >>> 0; while (v) { v &= v - 1; n++; } } return n; };
+// Yüz taraması için görseli küçült (800 px): aynı doğruluk, birkaç kat hızlı
+const faceFit = (im, max = 800) => { const w = im.naturalWidth || im.width, h = im.naturalHeight || im.height, k = Math.min(1, max / Math.max(w, h)); if (k === 1 || !w) return im; const c = document.createElement('canvas'); c.width = Math.round(w * k); c.height = Math.round(h * k); c.getContext('2d').drawImage(im, 0, 0, c.width, c.height); return c; };
 async function loadFaceApi() {
   if (!window.faceapi) await new Promise((r, j) => { const sc = document.createElement('script'); sc.src = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/dist/face-api.js'; sc.onload = r; sc.onerror = j; document.head.appendChild(sc); });
+  // Hesaplama motoru hazır olmadan modeller kullanılamaz (eski hata: 'wasm backend has not yet been initialized').
+  // Sıra: WebGL (telefonlarda hızlı) → WebAssembly (GPU yoksa) → işlemci (son çare, yavaş).
+  if (!window.__faceBackend) {
+    const tf = faceapi.tf;
+    try { tf.setWasmPaths('https://cdn.jsdelivr.net/npm/@tensorflow/tfjs-backend-wasm@' + tf.version['tfjs-core'] + '/dist/'); } catch (e) {}
+    for (const b of ['webgl', 'wasm', 'cpu']) { try { if (await tf.setBackend(b)) { await tf.ready(); window.__faceBackend = b; break; } } catch (e) { console.warn('yüz motoru', b, e); } }
+  }
   const M = 'https://cdn.jsdelivr.net/npm/@vladmandic/face-api@1.7.13/model/';
   if (!faceapi.nets.faceRecognitionNet.params) await Promise.all([faceapi.nets.tinyFaceDetector.loadFromUri(M), faceapi.nets.faceLandmark68Net.loadFromUri(M), faceapi.nets.faceRecognitionNet.loadFromUri(M)]);
 }
@@ -947,8 +956,8 @@ async function album(wid, key) {
         const imgs = photos.filter(p => p.type === 'image' && p.status !== 'hidden'), cents = [], res = {};
         for (let i = 0; i < imgs.length; i++) {
           $('#prog').textContent = `Yüzler taranıyor ${i + 1}/${imgs.length}`;
-          const im = new Image(); im.crossOrigin = 'anonymous'; im.src = await getUrl(imgs[i].thumbPath || imgs[i].path); await im.decode().catch(() => {});
-          const det = await faceapi.detectAllFaces(im, new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .5})).withFaceLandmarks().withFaceDescriptors();
+          const im = new Image(); im.crossOrigin = 'anonymous'; im.src = await getUrl(imgs[i].thumbPath || imgs[i].path); if (!(await im.decode().then(() => true, () => false))) continue;
+          const det = await faceapi.detectAllFaces(faceFit(im), new faceapi.TinyFaceDetectorOptions({inputSize: 416, scoreThreshold: .5})).withFaceLandmarks().withFaceDescriptors();
           const ids = new Set();
           for (const d of det) {
             let best = -1, bd = 9; cents.forEach((c, k) => { const dist = faceapi.euclideanDistance(c.d, d.descriptor); if (dist < bd) { bd = dist; best = k; } });
