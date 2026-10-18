@@ -15,7 +15,7 @@
 :root{--ink:#241e1b;--paper:#f6efe2;--card:#fffcf6;--ac:#9a2e2a;--ac2:#2e5e52;--mut:#8c8072;--line:#e4d9c7;--ok:#2e5e52;--bad:#b5502b;--r:14px;--r-sm:10px}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
-html,body{margin:0}
+html,body{margin:0;overflow-x:clip}
 body{background:var(--paper);color:var(--ink);font:16px/1.55 'Work Sans',system-ui,sans-serif;min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 h1,h2,h3{font-family:'Fraunces',Georgia,serif;font-weight:560;letter-spacing:-.015em;margin:0 0 .4em;line-height:1.1}
 h1{font-size:2.15rem}h2{font-size:1.3rem}
@@ -43,9 +43,10 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .hero{padding:40px 0 22px;position:relative}
 .hero p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:1.08rem;color:var(--mut);margin-top:-.1em}
 .hero::after{content:'';position:absolute;left:0;bottom:4px;width:52px;height:3px;background:var(--ac);border-radius:2px}
-.hero.has-bg{margin:14px calc(50% - 50vw) 26px;width:100vw;box-sizing:border-box;min-height:min(72vh,620px);padding:20vh 24px 36px;border-radius:0;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
+.hero.has-bg{--ww:720px;margin:14px calc(50% - 50vw) 26px;width:100vw;box-sizing:border-box;min-height:min(72vh,620px);padding:20vh max(20px,calc((100vw - var(--ww)) / 2 + 16px)) 36px;border-radius:0;overflow:hidden;color:#fff;display:flex;flex-direction:column;justify-content:flex-end}
 .hero.has-bg h1,.hero.has-bg p{color:#fff;text-shadow:0 2px 14px rgba(0,0,0,.5)}
 .hero.has-bg::after{background:#fff}
+.wrap.wide .hero.has-bg{--ww:1100px}
 .hero.modern{text-align:left}
 .hero .bgimg{position:absolute;inset:0;background-size:cover;background-position:center;z-index:-2;border-radius:inherit;background-color:var(--line)}
 .hero .bgimg::after{content:'';position:absolute;inset:0;background:linear-gradient(to bottom,rgba(36,30,27,.05) 0%,rgba(36,30,27,.2) 45%,rgba(36,30,27,.82) 100%)}
@@ -70,10 +71,16 @@ label.f>input,label.f>select,label.f>textarea{margin-top:4px;color:var(--ink)}
 .feat span{font-size:.82rem;color:var(--mut)}
 .pk-opt b.price{font-family:'Fraunces',Georgia,serif;font-size:1.2rem;font-weight:600;white-space:nowrap}
 #qlist{list-style:none;padding:0;margin:14px 0 0}
-#qlist li{display:grid;grid-template-columns:36px 1fr 90px 64px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
+#qlist li{display:grid;grid-template-columns:36px 1fr 76px 64px 30px;gap:8px;align-items:center;padding:8px 0;border-top:1px solid var(--line);font-size:.85rem}
 #qlist span.nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 #qlist .th{width:36px;height:36px;border-radius:8px;object-fit:cover;background:var(--line);flex:none}
-#qlist em{font-style:normal;font-variant-numeric:tabular-nums;text-align:right}
+#qlist em{font-style:normal;font-variant-numeric:tabular-nums;text-align:right;font-size:.78rem}
+#qlist .qx{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:#fff;cursor:pointer;font-size:.85rem;line-height:1;padding:0;color:var(--mut)}
+#qlist .qx:hover{border-color:var(--ac);color:var(--ac)}
+#qlist li[data-state=fail] em,#qlist li[data-state=fatal] em{color:var(--bad)}
+#qlist li[data-state=done] em{color:var(--ok)}
+#qlist li[data-state=cancelled]{opacity:.45;transition:opacity .3s}
+.qhead{display:flex;align-items:center;gap:8px;margin:14px 0 0;font-size:.85rem}
 progress{width:100%;height:6px;accent-color:var(--ac);border:0;border-radius:99px;overflow:hidden;background:var(--line)}
 progress::-webkit-progress-bar{background:var(--line);border-radius:99px}
 progress::-webkit-progress-value{background:var(--ac);border-radius:99px}
@@ -110,6 +117,32 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .wish em{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-style:normal;font-weight:600;font-size:.8rem;margin-bottom:8px}
 .wish p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:.95rem;margin:0 0 8px;color:var(--ink)}
 .wish b{font-size:.78rem;font-weight:500;color:var(--mut)}
+.demo-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 26px}
+.demo-stats div{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 8px;text-align:center}
+.demo-stats b{display:block;font-family:'Fraunces',Georgia,serif;font-size:1.6rem;font-weight:560;color:var(--ac);line-height:1.1}
+.demo-stats span{font-size:.75rem;color:var(--mut)}
+@media (max-width:560px){.demo-stats{grid-template-columns:repeat(2,1fr)}}
+.ph .vbadge{position:absolute;top:6px;right:6px;width:24px;height:24px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:.7rem;display:grid;place-items:center}
+.demo-cta{text-align:center;padding:28px 18px;margin-top:28px}
+.demo-cta p{margin:0 auto 14px}
+.swatches{align-items:center;gap:8px;flex-wrap:wrap}
+.swatch{width:28px;height:28px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px var(--line);cursor:pointer;padding:0}
+.swatch.on{box-shadow:0 0 0 2px var(--ac)}
+#s3[type=color]{width:30px;height:30px;padding:1px;border-radius:50%;cursor:pointer;border:1px solid var(--line)}
+.tpl-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:6px}
+.tpl-opt{border:1px solid var(--line);border-radius:var(--r-sm);padding:10px 6px;text-align:center;cursor:pointer;display:flex;flex-direction:column;gap:2px}
+.tpl-opt:has(input:checked){border-color:var(--ac);background:color-mix(in srgb,var(--ac) 6%,var(--card))}
+.tpl-opt input{display:none}
+.tpl-opt b{font-size:.82rem}
+.tpl-opt span{color:var(--mut);font-size:.7rem}
+.qr-prev{display:flex;justify-content:center;margin:16px 0}
+.qr-prev-card{--qc:#9a2e2a;border:1.5px solid var(--qc);border-radius:10px;padding:18px;text-align:center;width:180px;display:flex;flex-direction:column;align-items:center;gap:5px;background:#fff}
+.qr-prev-card b{font-family:'Fraunces',Georgia,serif;font-size:1rem;color:#241e1b}
+.qr-prev-card small{color:#8c8072;font-size:.7rem}
+.qr-prev-card img{width:100px;height:100px;margin:5px 0}
+.qr-prev-card em{font-style:normal;font-size:.62rem;color:#8c8072}
+.qr-prev-card.tpl-minimal b,.qr-prev-card.tpl-minimal small{display:none}
+.qr-prev-card.tpl-elegant{box-shadow:0 0 0 1px var(--qc),0 0 0 6px #fff,0 0 0 7px var(--qc)}
 @keyframes mfade{from{opacity:0}to{opacity:1}}
 @keyframes mpop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
 .modal.lb>div{max-width:960px;background:#111;color:#fff;padding:12px}
@@ -209,6 +242,7 @@ const PRODUCTS = {                     // baskı ürünleri (fiyatları düzenle
 firebase.initializeApp(CFG);
 if (APPCHECK_KEY) firebase.appCheck().activate(APPCHECK_KEY, true);
 const auth = firebase.auth(), db = firebase.firestore(), st = firebase.storage();
+try { st.setMaxUploadRetryTime(25000); st.setMaxOperationRetryTime(25000); } catch (e) {} // varsayılan 10 dk: takılı kalmanın asıl sebebi
 const TS = firebase.firestore.FieldValue.serverTimestamp;
 const logEv = (t, wid) => db.collection('events').add({t, wid: wid || null, at: TS()}).catch(() => {});
 
@@ -227,6 +261,8 @@ const base = location.origin + location.pathname;
 const link = (k, wid, key) => `${base}#/${k}/${wid}${key ? '/' + key : ''}`;
 const rid = n => { const a = new Uint8Array(n); crypto.getRandomValues(a); return [...a].map(x => 'abcdefghjkmnpqrstuvwxyz23456789'[x % 31]).join(''); };
 const qrUrl = (text, size = 6) => { const q = qrcode(0, 'M'); q.addData(text); q.make(); return q.createDataURL(size, 2); };
+const qrSvgUrl = (text, color, size = 6) => { const q = qrcode(0, 'M'); q.addData(text); q.make(); const svg = q.createSvgTag({cellSize: size, margin: 2}).replace(/fill="black"/g, `fill="${color}"`).replace('fill="white"', 'fill="none"'); return 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(svg))); };
+const THEMES = [['#9a2e2a', 'Bordo'], ['#b4607a', 'Gül Kurusu'], ['#1a1a1a', 'Noir'], ['#5c7a62', 'Adaçayı'], ['#1e3a5f', 'Lacivert'], ['#a9842e', 'Altın']];
 const urlCache = {};
 const getUrl = async p => urlCache[p] || (urlCache[p] = await st.ref(p).getDownloadURL());
 const fmtDate = t => t ? (t.toDate ? t.toDate() : new Date(t)).toLocaleDateString(lang === 'tr' ? 'tr-TR' : lang) : '';
@@ -277,9 +313,9 @@ const notFound = () => app.innerHTML = `<div class="wrap"><h1>404</h1><p class="
 
 /* ===== Dil ===== */
 const T = {
-  tr: {name:'Adınız', note:'Not (isteğe bağlı)', mail:'E-posta (albüm bağlantısı için, isteğe bağlı)', consent:'Yüklediğim görüntülerin çift tarafından saklanmasını ve albümde gösterilmesini kabul ediyorum.', kvkk:'Aydınlatma metni', pick:'Fotoğraf / video seç', cam:'Kamera', rec:'Sesli dilek', stop:'Bitir ve gönder', wait:'Bekliyor', retry:'Tekrar', fail:'Hata', done:'Yüklendi', closed:'Yükleme şu an kapalı.', gal:'Galeri', welcome:'Bu günün karelerini bizimle paylaşın.', needc:'Önce onay kutusunu işaretleyin.', rsvp:'Katılım bildirimi', yes:'Katılacağım', no:'Katılamayacağım', cnt:'Kişi sayısı', send:'Gönder', sent:'Teşekkürler!', invite:'Davetiye', upl:'Fotoğraf yükle', leave:'Yükleme sürüyor, sayfayı kapatmayın.', big:'Dosya çok büyük (en fazla 2 GB)', badtype:'Desteklenmeyen dosya', findme:'Beni bul', findinfo:'Bir selfie çekin; içinde olduğunuz kareleri bulalım. Selfie yalnızca bu telefonda işlenir, hiçbir yere yüklenmez.', noface:'Selfie’de yüz bulunamadı, tekrar deneyin.', scan:'Taranıyor', nomatch:'Sizi içeren kare bulunamadı.', found:'kare bulundu', stopb:'Durdur'},
-  en: {name:'Your name', note:'Note (optional)', mail:'Email (to get the album link, optional)', consent:'I agree that my uploads are stored by the couple and shown in the album.', kvkk:'Privacy notice', pick:'Choose photos / videos', cam:'Camera', rec:'Voice message', stop:'Finish and send', wait:'Waiting', retry:'Retry', fail:'Failed', done:'Uploaded', closed:'Uploads are closed right now.', gal:'Gallery', welcome:'Share your photos from this day with us.', needc:'Tick the consent box first.', rsvp:'RSVP', yes:'I will attend', no:'I cannot attend', cnt:'Guests', send:'Send', sent:'Thank you!', invite:'Invitation', upl:'Upload photos', leave:'Upload in progress, do not close the page.', big:'File too large (max 2 GB)', badtype:'Unsupported file', findme:'Find me', findinfo:'Take a selfie and we will find the photos you are in. The selfie is processed only on this phone and never uploaded.', noface:'No face found in the selfie, try again.', scan:'Scanning', nomatch:'No photos with you were found.', found:'photos found', stopb:'Stop'},
-  de: {name:'Ihr Name', note:'Notiz (optional)', mail:'E-Mail (für den Album-Link, optional)', consent:'Ich stimme zu, dass meine Uploads vom Brautpaar gespeichert und im Album gezeigt werden.', kvkk:'Datenschutzhinweis', pick:'Fotos / Videos wählen', cam:'Kamera', rec:'Sprachnachricht', stop:'Beenden und senden', wait:'Wartet', retry:'Erneut', fail:'Fehler', done:'Hochgeladen', closed:'Uploads sind derzeit geschlossen.', gal:'Galerie', welcome:'Teilen Sie Ihre Fotos von diesem Tag mit uns.', needc:'Bitte zuerst die Einwilligung ankreuzen.', rsvp:'Zusage', yes:'Ich komme', no:'Ich kann nicht kommen', cnt:'Personen', send:'Senden', sent:'Danke!', invite:'Einladung', upl:'Fotos hochladen', leave:'Upload läuft, Seite nicht schließen.', big:'Datei zu groß (max. 2 GB)', badtype:'Nicht unterstützte Datei', findme:'Finde mich', findinfo:'Machen Sie ein Selfie, wir finden die Fotos mit Ihnen. Das Selfie wird nur auf diesem Telefon verarbeitet und nie hochgeladen.', noface:'Kein Gesicht im Selfie gefunden, bitte erneut versuchen.', scan:'Suche', nomatch:'Keine Fotos mit Ihnen gefunden.', found:'Fotos gefunden', stopb:'Stopp'}
+  tr: {name:'Adınız', note:'Not (isteğe bağlı)', mail:'E-posta (albüm bağlantısı için, isteğe bağlı)', consent:'Yüklediğim görüntülerin çift tarafından saklanmasını ve albümde gösterilmesini kabul ediyorum.', kvkk:'Aydınlatma metni', pick:'Fotoğraf / video seç', cam:'Kamera', rec:'Sesli dilek', stop:'Bitir ve gönder', wait:'Bekliyor', retry:'Tekrar', fail:'Hata', done:'Yüklendi', closed:'Yükleme şu an kapalı.', gal:'Galeri', welcome:'Bu günün karelerini bizimle paylaşın.', needc:'Önce onay kutusunu işaretleyin.', rsvp:'Katılım bildirimi', yes:'Katılacağım', no:'Katılamayacağım', cnt:'Kişi sayısı', send:'Gönder', sent:'Teşekkürler!', invite:'Davetiye', upl:'Fotoğraf yükle', leave:'Yükleme sürüyor, sayfayı kapatmayın.', big:'Dosya çok büyük (en fazla 2 GB)', badtype:'Desteklenmeyen dosya', findme:'Beni bul', findinfo:'Bir selfie çekin; içinde olduğunuz kareleri bulalım. Selfie yalnızca bu telefonda işlenir, hiçbir yere yüklenmez.', noface:'Selfie’de yüz bulunamadı, tekrar deneyin.', scan:'Taranıyor', nomatch:'Sizi içeren kare bulunamadı.', found:'kare bulundu', stopb:'Durdur', cancel:'İptal', cancelled:'İptal edildi', retryb:'Tekrar dene', denied:'Yüklenemedi: yükleme kapalı ya da kota dolu', offline:'Bağlantı bekleniyor', prep:'Hazırlanıyor', stalled:'Bağlantı yavaş, yeniden deneniyor', ofdone:'yüklendi', cancelall:'Tümünü iptal et', wifi:'İpucu: videolar Wi‑Fi bağlantısında çok daha hızlı yüklenir. Yükleme bitene kadar bu sayfayı açık tutun.'},
+  en: {name:'Your name', note:'Note (optional)', mail:'Email (to get the album link, optional)', consent:'I agree that my uploads are stored by the couple and shown in the album.', kvkk:'Privacy notice', pick:'Choose photos / videos', cam:'Camera', rec:'Voice message', stop:'Finish and send', wait:'Waiting', retry:'Retry', fail:'Failed', done:'Uploaded', closed:'Uploads are closed right now.', gal:'Gallery', welcome:'Share your photos from this day with us.', needc:'Tick the consent box first.', rsvp:'RSVP', yes:'I will attend', no:'I cannot attend', cnt:'Guests', send:'Send', sent:'Thank you!', invite:'Invitation', upl:'Upload photos', leave:'Upload in progress, do not close the page.', big:'File too large (max 2 GB)', badtype:'Unsupported file', findme:'Find me', findinfo:'Take a selfie and we will find the photos you are in. The selfie is processed only on this phone and never uploaded.', noface:'No face found in the selfie, try again.', scan:'Scanning', nomatch:'No photos with you were found.', found:'photos found', stopb:'Stop', cancel:'Cancel', cancelled:'Cancelled', retryb:'Retry', denied:'Could not upload: uploads closed or storage full', offline:'Waiting for connection', prep:'Preparing', stalled:'Slow connection, retrying', ofdone:'uploaded', cancelall:'Cancel all', wifi:'Tip: videos upload much faster on Wi‑Fi. Keep this page open until uploads finish.'},
+  de: {name:'Ihr Name', note:'Notiz (optional)', mail:'E-Mail (für den Album-Link, optional)', consent:'Ich stimme zu, dass meine Uploads vom Brautpaar gespeichert und im Album gezeigt werden.', kvkk:'Datenschutzhinweis', pick:'Fotos / Videos wählen', cam:'Kamera', rec:'Sprachnachricht', stop:'Beenden und senden', wait:'Wartet', retry:'Erneut', fail:'Fehler', done:'Hochgeladen', closed:'Uploads sind derzeit geschlossen.', gal:'Galerie', welcome:'Teilen Sie Ihre Fotos von diesem Tag mit uns.', needc:'Bitte zuerst die Einwilligung ankreuzen.', rsvp:'Zusage', yes:'Ich komme', no:'Ich kann nicht kommen', cnt:'Personen', send:'Senden', sent:'Danke!', invite:'Einladung', upl:'Fotos hochladen', leave:'Upload läuft, Seite nicht schließen.', big:'Datei zu groß (max. 2 GB)', badtype:'Nicht unterstützte Datei', findme:'Finde mich', findinfo:'Machen Sie ein Selfie, wir finden die Fotos mit Ihnen. Das Selfie wird nur auf diesem Telefon verarbeitet und nie hochgeladen.', noface:'Kein Gesicht im Selfie gefunden, bitte erneut versuchen.', scan:'Suche', nomatch:'Keine Fotos mit Ihnen gefunden.', found:'Fotos gefunden', stopb:'Stopp', cancel:'Abbrechen', cancelled:'Abgebrochen', retryb:'Erneut versuchen', denied:'Upload nicht möglich: geschlossen oder Speicher voll', offline:'Warte auf Verbindung', prep:'Wird vorbereitet', stalled:'Langsame Verbindung, neuer Versuch', ofdone:'hochgeladen', cancelall:'Alle abbrechen', wifi:'Tipp: Videos laden über WLAN deutlich schneller hoch. Lassen Sie diese Seite bis zum Ende geöffnet.'}
 };
 let lang = localStorage.lang || ({tr:'tr', de:'de'}[navigator.language.slice(0, 2)] || 'en');
 const t = k => (T[lang] && T[lang][k]) || T.tr[k] || k;
@@ -299,6 +335,7 @@ async function route() {
     else if (k === 'a') await album(a, b);
     else if (k === 'wall') await wall(a, b);
     else if (k === 'kvkk') kvkk();
+    else if (k === 'ornek') await demo(a);
     else if (k === 's') { const sn = await db.doc('slugs/' + a).get(); if (!sn.exists) return notFound(); location.replace('#/u/' + sn.data().wid); }
     else if (k === 'buy') buy(a);
     else if (k === 'done') await done(a, b);
@@ -346,29 +383,73 @@ async function dhash(blob) {   // 64 bit "fark" parmak izi: benzer/yinelenen kar
 const MIME = {jpg:'image/jpeg', jpeg:'image/jpeg', png:'image/png', heic:'image/heic', heif:'image/heif', webp:'image/webp', gif:'image/gif',
   mp4:'video/mp4', mov:'video/quicktime', m4v:'video/mp4', '3gp':'video/3gpp', webm:'video/webm', mkv:'video/x-matroska', m4a:'audio/mp4', mp3:'audio/mpeg', aac:'audio/aac', ogg:'audio/ogg'};
 const MAX_MB = 2048; // storage.rules ile aynı olmalı (2 GB)
-async function uploadFile(wid, w, job, onProg) {
-  const f = job.file, uid = auth.currentUser.uid;
-  const mime = f.type || MIME[f.name && f.name.includes('.') ? ext(f.name) : ''] || '';
-  if (!/^(image|video|audio)\//.test(mime)) throw Object.assign(new Error('type'), {fatal: true});
-  if (f.size > MAX_MB * 1048576) throw Object.assign(new Error('size'), {fatal: true});
-  const type = mime.startsWith('video') ? 'video' : mime.startsWith('audio') ? 'audio' : 'image';
+const fail = (msg, extra) => Object.assign(new Error(msg), extra);
+// Telefon fotoğrafını (5-8 MB) uzun kenar 2560 px, JPEG %86 kaliteye küçültür (~0,6-1,2 MB). Ekranda ve 13x18 baskıda fark edilmez.
+// Başarısız olursa ya da sonuç büyürse orijinali kullanır. GIF/PNG'ye dokunmaz (animasyon/şeffaflık bozulmasın).
+async function compressImage(f) {
+  if (!/^image\/(jpeg|jpg|webp|heic|heif)$/i.test(f.type || '') || f.size < 1.2 * 1048576) return f;
+  try {
+    const bm = await createImageBitmap(f); // EXIF yönünü modern tarayıcılar otomatik uygular
+    const k = Math.min(1, 2560 / Math.max(bm.width, bm.height));
+    const c = document.createElement('canvas'); c.width = Math.round(bm.width * k); c.height = Math.round(bm.height * k);
+    c.getContext('2d').drawImage(bm, 0, 0, c.width, c.height); bm.close && bm.close();
+    const b = await new Promise(r => c.toBlob(r, 'image/jpeg', .86));
+    if (!b || b.size >= f.size) return f;
+    return new File([b], (f.name || 'foto').replace(/\.[^.]+$/, '') + '.jpg', {type: 'image/jpeg'});
+  } catch (e) { return f; }
+}
+// Tek dosyayı yükler. job.cancelled = true yapılırsa ve job.task iptal edilirse 'cancelled' hatasıyla durur.
+// 40 sn boyunca hiç ilerleme olmazsa yüklemeyi kesip yeniden denenebilir hata fırlatır (takılı kalmasın).
+async function uploadFile(wid, w, job, onProg, onStage) {
+  const chk = () => { if (job.cancelled) throw fail('cancelled', {cancelled: true}); };
+  const orig = job.file, uid = auth.currentUser.uid;
+  const mime0 = orig.type || MIME[orig.name && orig.name.includes('.') ? ext(orig.name) : ''] || '';
+  if (!/^(image|video|audio)\//.test(mime0)) throw fail('type', {fatal: true});
+  if (orig.size > MAX_MB * 1048576) throw fail('size', {fatal: true});
+  const type = mime0.startsWith('video') ? 'video' : mime0.startsWith('audio') ? 'audio' : 'image';
+  if (!job.up) { onStage && onStage('prep'); job.up = (type === 'image' && !w.originals) ? await compressImage(orig) : orig; }
+  chk();
+  const f = job.up, mime = f.type || mime0;
   const e = (f.name && f.name.includes('.') ? ext(f.name) : mime.split('/')[1].split(';')[0]).replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
-  const path = `weddings/${wid}/${job.id}.${e}`;
-  let thumbPath = null, ph = null;
-  if (type !== 'audio') {
+  const path = job.path || (job.path = `weddings/${wid}/${job.id}.${e}`);
+  const meta = {contentType: mime, customMetadata: {uid}};
+
+  // küçük resim ana dosyayla aynı anda hazırlanıp yüklenir (önceden sırayla bekliyordu)
+  const thumbJob = (async () => {
+    if (type === 'audio') return {thumbPath: null, ph: null};
     const tb = job.thumb || (job.thumb = await makeThumb(f, type === 'video'));
-    if (tb && type === 'image') ph = job.ph || (job.ph = await dhash(tb));
-    if (tb) { thumbPath = `weddings/${wid}/t_${job.id}.jpg`; if (!job.thumbDone) { await st.ref(thumbPath).put(tb, {contentType: 'image/jpeg'}); job.thumbDone = true; } }
-  }
-  if (!job.fileDone) {
+    const ph = (tb && type === 'image') ? (job.ph || (job.ph = await dhash(tb))) : null;
+    if (!tb) return {thumbPath: null, ph};
+    const thumbPath = `weddings/${wid}/t_${job.id}.jpg`;
+    if (!job.thumbDone) { chk(); await st.ref(thumbPath).put(tb, {contentType: 'image/jpeg', customMetadata: {uid}}); job.thumbDone = thumbPath;
+      if (job.cancelled) st.ref(thumbPath).delete().catch(() => {}); } // iptalden sonra biten küçük resim yetim kalmasın
+    return {thumbPath, ph};
+  })();
+
+  const mainJob = (async () => {
+    if (job.fileDone) return;
     await new Promise((res, rej) => {
-      const task = st.ref(path).put(f, {contentType: mime});
-      task.on('state_changed', s => onProg(s.bytesTransferred / s.totalBytes), rej, res);
+      const task = job.task = st.ref(path).put(f, meta);
+      let last = Date.now(), lastBytes = 0;
+      const dog = setInterval(() => {
+        if (Date.now() - last > 40000) { clearInterval(dog); job.stalled = true; task.cancel(); }
+      }, 3000);
+      task.on('state_changed', snap => {
+        if (snap.bytesTransferred !== lastBytes) { lastBytes = snap.bytesTransferred; last = Date.now(); }
+        onProg(snap.bytesTransferred / (snap.totalBytes || 1));
+      }, err => { clearInterval(dog); job.task = null;
+        if (job.cancelled) rej(fail('cancelled', {cancelled: true}));
+        else if (job.stalled) { job.stalled = false; rej(fail('stalled', {stalled: true})); }
+        else rej(err);
+      }, () => { clearInterval(dog); job.task = null; res(); });
     });
-    job.fileDone = true;
-  }
+    job.fileDone = path;
+  })();
+
+  const [tj] = await Promise.all([thumbJob, mainJob]);
+  chk();
   await db.doc(`weddings/${wid}/photos/${job.id}`).set({
-    path, thumbPath, ph, type, name: job.name, note: job.note, size: f.size,
+    path, thumbPath: tj.thumbPath, ph: tj.ph, type, name: job.name, note: job.note, size: f.size,
     status: w.moderation ? 'pending' : 'approved', uid, createdAt: TS(), likes: 0, fav: false
   });
 }
@@ -420,6 +501,8 @@ async function guest(wid, mode) {
       <label class="btn">${t('cam')}<input hidden type="file" id="fc" accept="image/*,video/*" capture="environment"></label>
       <button class="btn" id="rec" type="button">${t('rec')}</button>
     </div>
+    <p class="mut" style="font-size:.78rem;margin:8px 0 0">${t('wifi')}</p>
+    <div class="qhead" id="qhead" hidden><b id="qsum"></b><span class="sp"></span><button type="button" class="btn sm" id="qcan">${t('cancelall')}</button></div>
     <ul id="qlist"></ul></div>`;
   if (inv) html += `<p><a href="#/i/${wid}">${t('invite')} / ${t('rsvp')}</a></p>`;
   const canFind = w.guestGallery && (PK[w.pkg] || PK.basic).ai;
@@ -470,26 +553,87 @@ async function guest(wid, mode) {
   }
   if (!open) return;
 
-  /* kuyruk: aynı anda 2 yükleme, hata/çevrimdışında tekrar dener */
-  const queue = []; let running = 0, active = 0;
-  const warn = e => { if (active) { e.preventDefault(); e.returnValue = t('leave'); } };
+  /* kuyruk: fotoğraf 3'lü paralel, video tek başına; iptal, tekrar dene, takılma bekçisi */
+  const queue = [], jobs = new Set(); let running = 0, runningVideo = false;
+  const warn = e => { if ([...jobs].some(j => !j.final)) { e.preventDefault(); e.returnValue = t('leave'); } };
   addEventListener('beforeunload', warn); cleanup.push(() => removeEventListener('beforeunload', warn));
-  let runningVideo = false;
-  const pump = () => { const cap = runningVideo ? 1 : 2; while (running < cap && queue.length) { const j = queue.shift(); running++; if (j.isVideo) runningVideo = true; run(j).finally(() => { running--; if (j.isVideo) runningVideo = false; pump(); }); } };
+  const DENIED = ['storage/unauthorized', 'storage/unauthenticated', 'storage/quota-exceeded', 'permission-denied'];
+  const sleepC = (j, ms) => new Promise(r => { const t0 = Date.now(), iv = setInterval(() => { if (j.cancelled || Date.now() - t0 >= ms) { clearInterval(iv); r(); } }, 250); });
+  const waitOnline = j => new Promise(r => { const iv = setInterval(() => { if (navigator.onLine || j.cancelled) { clearInterval(iv); r(); } }, 1000); });
+  const updSum = () => {
+    const arr = [...jobs].filter(j => j.state !== 'cancelled'), done = arr.filter(j => j.state === 'done').length;
+    $('#qhead').hidden = !arr.length;
+    $('#qsum').textContent = `${done}/${arr.length} ${t('ofdone')}`;
+    $('#qcan').hidden = !arr.some(j => !j.final);
+  };
+  const setBtn = (j, kind) => { // kind: 'x' iptal/kaldır, 'r' tekrar dene, '' yok
+    const b = j.li.querySelector('.qx');
+    b.hidden = !kind; b.textContent = kind === 'r' ? '↻' : '✕';
+    b.title = b.ariaLabel = kind === 'r' ? t('retryb') : t('cancel');
+    b.dataset.k = kind;
+  };
+  function finish(j, state, msg) {
+    j.state = state; j.final = true;
+    const em = j.li.querySelector('em');
+    j.li.dataset.state = state;
+    if (state === 'done') { em.textContent = '✓'; j.li.querySelector('progress').value = 1; setBtn(j, ''); if (j.thumbUrl) URL.revokeObjectURL(j.thumbUrl); }
+    else if (state === 'cancelled') {
+      em.textContent = t('cancelled'); setBtn(j, '');
+      [j.thumbDone, j.fileDone].filter(Boolean).forEach(p => st.ref(p).delete().catch(() => {})); // yarım kalan dosyaları temizle
+      setTimeout(() => { j.li.remove(); jobs.delete(j); updSum(); }, 1500);
+    }
+    else if (state === 'fatal') {
+      em.textContent = msg; setBtn(j, msg === t('denied') ? 'r' : 'x');
+      // kayıt oluşmadıysa yüklenmiş parçalar sunucuda yetim kalmasın; ↻ ile baştan yüklenir
+      [j.thumbDone, j.fileDone].filter(Boolean).forEach(p => st.ref(p).delete().catch(() => {}));
+      j.thumbDone = j.fileDone = null;
+    }
+    else { em.textContent = t('fail'); setBtn(j, 'r'); }
+    updSum();
+  }
   async function run(j) {
-    for (let a = 0; a < 6; a++) {
+    const em = j.li.querySelector('em'), pr = j.li.querySelector('progress');
+    j.state = 'run'; j.li.dataset.state = 'run'; setBtn(j, 'x');
+    for (let a = 0; a < 4; a++) {
+      if (j.cancelled) return finish(j, 'cancelled');
       try {
-        if (!navigator.onLine) await new Promise(r => addEventListener('online', r, {once: true}));
-        await uploadFile(wid, w, j, p => { j.li.querySelector('progress').value = p; j.li.querySelector('em').textContent = Math.round(p * 100) + '%'; });
-        j.li.querySelector('em').textContent = '✓'; j.li.querySelector('progress').value = 1; active--; return;
+        if (!navigator.onLine) { em.textContent = t('offline'); await waitOnline(j); if (j.cancelled) return finish(j, 'cancelled'); }
+        await uploadFile(wid, w, j,
+          p => { if (!j.cancelled) { pr.value = p; em.textContent = Math.round(p * 100) + '%'; } },
+          stage => { em.textContent = t(stage); });
+        return finish(j, 'done');
       } catch (e) {
         console.warn(e);
-        if (e.fatal) { j.li.querySelector('em').textContent = e.message === 'size' ? t('big') : t('badtype'); active--; return; }
-        j.li.querySelector('em').textContent = t('retry') + ' ' + (a + 1); await sleep(1500 * 2 ** a);
+        if (e.cancelled || j.cancelled) return finish(j, 'cancelled');
+        if (e.fatal) return finish(j, 'fatal', e.message === 'size' ? t('big') : t('badtype'));
+        if (DENIED.includes(e.code)) return finish(j, 'fatal', t('denied'));
+        em.textContent = e.stalled ? t('stalled') : `${t('retry')} ${a + 1}/3`;
+        if (a < 3) await sleepC(j, 2000 * 2 ** a);
       }
     }
-    j.li.querySelector('em').textContent = t('fail'); active--;
+    finish(j, 'fail');
   }
+  const pump = () => {
+    while (queue.length) {
+      const nx = queue[0], cap = runningVideo || nx.isVideo ? 1 : 3;
+      if (running >= cap) break;
+      queue.shift(); running++; if (nx.isVideo) runningVideo = true;
+      run(nx).finally(() => { running--; if (nx.isVideo) runningVideo = false; pump(); });
+    }
+  };
+  function cancelJob(j) {
+    if (j.final) { if (j.state !== 'done') { j.li.remove(); jobs.delete(j); updSum(); } return; } // başarısız satırı kaldır
+    j.cancelled = true;
+    const qi = queue.indexOf(j);
+    if (qi >= 0) { queue.splice(qi, 1); return finish(j, 'cancelled'); }
+    if (j.task) j.task.cancel(); // çalışan yükleme: run() iptali yakalayıp bitirir
+  }
+  function retryJob(j) {
+    j.final = false; j.cancelled = false; j.state = 'wait';
+    j.li.dataset.state = 'wait'; j.li.querySelector('em').textContent = t('wait'); setBtn(j, 'x');
+    queue.push(j); updSum(); pump();
+  }
+  $('#qcan').onclick = () => [...jobs].forEach(j => { if (!j.final) cancelJob(j); });
   async function add(files) {
     if (!$('#kv').checked) { toast(t('needc')); return; }
     const name = $('#nm').value.trim() || 'Misafir', note = $('#nt').value.trim(), email = $('#em').value.trim();
@@ -497,13 +641,18 @@ async function guest(wid, mode) {
     db.doc(`weddings/${wid}/guests/${u.uid}`).set({name, email, createdAt: TS()}).catch(() => {});
     for (const f of files) {
       const id = db.collection('x').doc().id, li = document.createElement('li');
-      const isImg = (f.type || '').startsWith('image'), isVid = (f.type || '').startsWith('video');
-      let thumbSrc = ''; if (isImg) { try { thumbSrc = URL.createObjectURL(f); } catch (e) {} }
-      li.innerHTML = `${isImg ? `<img class="th" src="${thumbSrc}" alt="">` : `<span class="th" style="display:flex;align-items:center;justify-content:center;font-size:.8rem">${isVid ? '🎞' : '🎙'}</span>`}<span class="nm">${esc(f.name || 'ses')}</span><progress max="1" value="0"></progress><em>${t('wait')}</em>`;
-      $('#qlist').prepend(li); active++;
+      const mt = f.type || MIME[f.name && f.name.includes('.') ? ext(f.name) : ''] || '';
+      const isImg = mt.startsWith('image'), isVid = mt.startsWith('video');
+      const j = {id, file: f, name, note, li, isVideo: isVid, state: 'wait', final: false}; li.dataset.state = 'wait';
+      if (isImg) { try { j.thumbUrl = URL.createObjectURL(f); } catch (e) {} }
+      li.innerHTML = `${j.thumbUrl ? `<img class="th" src="${j.thumbUrl}" alt="">` : `<span class="th" style="display:flex;align-items:center;justify-content:center;font-size:.8rem">${isVid ? '🎞' : '🎙'}</span>`}<span class="nm">${esc(f.name || 'ses')}</span><progress max="1" value="0"></progress><em>${t('wait')}</em><button type="button" class="qx"></button>`;
+      li.querySelector('.qx').onclick = () => (li.querySelector('.qx').dataset.k === 'r' ? retryJob(j) : cancelJob(j));
+      setBtn(j, 'x');
+      $('#qlist').prepend(li); jobs.add(j);
       if (isVid && f.size > 50 * 1048576) toast('Büyük video: yüklemesi bağlantınıza göre birkaç dakika sürebilir');
-      queue.push({id, file: f, name, note, li, isVideo: isVid}); pump();
+      queue.push(j);
     }
+    updSum(); pump();
   }
   $('#fi').onchange = e => { add([...e.target.files]); e.target.value = ''; };
   $('#fc').onchange = e => { add([...e.target.files]); e.target.value = ''; };
@@ -819,7 +968,6 @@ async function album(wid, key) {
     const m = modal(`<h2>Ayarlar</h2>
       <label class="f">Başlık<input id="s1" value="${esc(w.title)}"></label>
       <label class="f">Karşılama mesajı<input id="s2" value="${esc(w.welcome || '')}"></label>
-      <label class="f">Tema rengi<input id="s3" type="color" value="${esc(th.color || '#9a2e2a')}"></label>
       <label class="f">Arka plan fotoğrafı (misafir ve davetiye sayfasında, isteğe bağlı)
         <div class="row" style="margin-top:4px">
           ${th.bg ? `<img data-bgp="${esc(th.bg)}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;background:var(--line)" alt="">` : ''}
@@ -827,9 +975,32 @@ async function album(wid, key) {
           ${th.bg ? '<button class="btn sm bad" id="bgx" type="button">Kaldır</button>' : ''}
         </div><em id="bgst" class="mut" style="font-style:normal;font-size:.75rem"></em>
       </label>
+
+      <h3>QR Tasarımı</h3>
+      <label class="f">Renk teması
+        <div class="row swatches" id="swr" style="margin-top:6px">${THEMES.map(([c, n]) => `<button type="button" class="swatch${(th.color || '#9a2e2a') === c ? ' on' : ''}" data-c="${c}" style="background:${c}" title="${n}"></button>`).join('')}
+        <input id="s3" type="color" value="${esc(th.color || '#9a2e2a')}" title="Özel renk"></div>
+      </label>
+      <label class="f">Çerçeve şablonu
+        <div class="tpl-grid" id="tplg">
+          <label class="tpl-opt"><input type="radio" name="tpl" value="minimal" ${(!th.frame || th.frame === 'minimal') ? 'checked' : ''}><b>Minimal</b><span>Sade, yalnızca QR</span></label>
+          <label class="tpl-opt"><input type="radio" name="tpl" value="classic" ${th.frame === 'classic' ? 'checked' : ''}><b>Klasik</b><span>İsim + tarih</span></label>
+          <label class="tpl-opt"><input type="radio" name="tpl" value="elegant" ${th.frame === 'elegant' ? 'checked' : ''}><b>Zarif</b><span>Çift çerçeve</span></label>
+        </div>
+      </label>
+      <div class="qr-prev" id="qrPrev"><div class="qr-prev-card" id="qpCard"><b id="qpT">${esc(w.title)}</b><small id="qpD"></small><img id="qpQ" alt=""><em>Baskıya hazır — "QR kartlarını yazdır"dan indirin</em></div></div>
+      <label class="f">Kendi tasarımınızı yükleyin (isteğe bağlı, masa kartı arka planı olarak kullanılır)
+        <div class="row" style="margin-top:4px">
+          ${th.qrBg ? `<img data-bgp="${esc(th.qrBg)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--line)" alt="">` : ''}
+          <label class="btn sm">${th.qrBg ? 'Değiştir' : 'Tasarım seç'}<input hidden type="file" id="qbf" accept="image/*"></label>
+          ${th.qrBg ? '<button class="btn sm bad" id="qbx" type="button">Kaldır</button>' : ''}
+        </div><em id="qbst" class="mut" style="font-style:normal;font-size:.75rem">PNG/JPG, maks. 15 MB. QR kod üzerine otomatik yerleştirilir.</em>
+      </label>
+
       <label class="chk"><input type="checkbox" id="o1" ${w.uploadOpen ? 'checked' : ''}><span>Yükleme açık</span></label>
       <label class="chk"><input type="checkbox" id="o2" ${w.moderation ? 'checked' : ''}><span>Moderasyon: onaylamadığım dosya galeride ve duvarda görünmesin</span></label>
       <label class="chk"><input type="checkbox" id="o3" ${w.guestGallery ? 'checked' : ''}><span>Misafirler onaylı galeriyi görsün ve beğensin</span></label>
+      <label class="chk"><input type="checkbox" id="o4" ${w.originals ? 'checked' : ''}><span>Fotoğrafları orijinal boyutta sakla (kapalıyken 2560 px'e küçültülür: yükleme 5-8 kat hızlı, kota daha geç dolar, ekranda ve 13×18 baskıda fark edilmez)</span></label>
       <h3>Dijital davetiye (isteğe bağlı)</h3>
       <label class="f">Görünüm<select id="i5"><option value="classic" ${iv.template !== 'modern' ? 'selected' : ''}>Klasik (ortalı)</option><option value="modern" ${iv.template === 'modern' ? 'selected' : ''}>Modern (sola yaslı)</option></select></label>
       <label class="f">Tarih / saat<input id="i1" value="${esc(iv.date || '')}" placeholder="12 Eylül 2026, 17:00"></label>
@@ -841,6 +1012,40 @@ async function album(wid, key) {
       <p class="mut" style="font-size:.8rem">Davetiye bağlantısı: ${esc(link('i', wid))}</p>
       <button class="btn pri" id="sv">Kaydet</button>`);
     lazyBg(m);
+    const qLink = guestLink(w, wid);
+    const curColor = () => m.querySelector('#s3').value;
+    const curTpl = () => m.querySelector('input[name=tpl]:checked').value;
+    const updatePrev = () => {
+      const c = curColor(), t = curTpl();
+      m.querySelector('#qpQ').src = qrSvgUrl(qLink, c, 5);
+      m.querySelector('#qpCard').style.setProperty('--qc', c);
+      m.querySelector('#qpCard').className = 'qr-prev-card tpl-' + t;
+      m.querySelector('#qpD').textContent = w.eventDate ? fmtDate(w.eventDate) : '';
+    };
+    m.querySelectorAll('#swr .swatch').forEach(b => b.onclick = () => {
+      m.querySelectorAll('#swr .swatch').forEach(x => x.classList.remove('on')); b.classList.add('on');
+      m.querySelector('#s3').value = b.dataset.c; updatePrev();
+    });
+    m.querySelector('#s3').oninput = () => { m.querySelectorAll('#swr .swatch').forEach(x => x.classList.remove('on')); updatePrev(); };
+    m.querySelectorAll('input[name=tpl]').forEach(r => r.onchange = updatePrev);
+    updatePrev();
+    const qbf = m.querySelector('#qbf');
+    if (qbf) qbf.onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 15 * 1048576) return toast('Tasarım en fazla 15 MB olabilir');
+      m.querySelector('#qbst').textContent = 'Yükleniyor…';
+      try {
+        const qbPath = `weddings/${wid}/settings/qrbg.jpg`;
+        await st.ref(qbPath).put(f, {contentType: f.type});
+        await db.doc('weddings/' + wid).update({'theme.qrBg': qbPath});
+        w.theme = {...th, qrBg: qbPath}; m.remove(); toast('Tasarım kaydedildi'); $('#bSet').click();
+      } catch (e2) { m.querySelector('#qbst').textContent = 'Yüklenemedi, tekrar deneyin'; }
+    };
+    const qbx = m.querySelector('#qbx');
+    if (qbx) qbx.onclick = async () => {
+      await db.doc('weddings/' + wid).update({'theme.qrBg': firebase.firestore.FieldValue.delete()});
+      w.theme = {...th, qrBg: undefined}; delete w.theme.qrBg; m.remove(); toast('Tasarım kaldırıldı'); $('#bSet').click();
+    };
     const bgf = m.querySelector('#bgf');
     if (bgf) bgf.onchange = async e => {
       const f = e.target.files[0]; if (!f) return;
@@ -860,14 +1065,58 @@ async function album(wid, key) {
     };
     m.querySelector('#sv').onclick = async () => {
       const g = s => m.querySelector(s), has = g('#i1').value || g('#i2').value || g('#i3').value || g('#i4').value || g('#i6').value || g('#i7').value;
+      const frame = document.querySelector('input[name=tpl]:checked').value;
       await db.doc('weddings/' + wid).update({
-        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value,
-        uploadOpen: g('#o1').checked, moderation: g('#o2').checked, guestGallery: g('#o3').checked,
+        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value, 'theme.frame': frame,
+        uploadOpen: g('#o1').checked, moderation: g('#o2').checked, guestGallery: g('#o3').checked, originals: g('#o4').checked,
         invite: has ? {date: g('#i1').value, place: g('#i2').value, map: g('#i3').value, text: g('#i4').value, story: g('#i6').value, schedule: g('#i7').value, template: g('#i5').value} : null
       });
       theme({...w, theme: {...th, color: g('#s3').value}}); m.remove(); toast('Kaydedildi');
     };
   };
+}
+
+/* ===== Örnek albüm: satış sayfası için gerçek bir düğünün vitrin görünümü (DüğünAnılarımız "örnek galeri" modeli) ===== */
+async function demo(widArg) {
+  await anon();
+  let wid = widArg || '';
+  if (!wid) { try { const s = await db.doc('config/demo').get(); if (s.exists) wid = s.data().wid || ''; } catch (e) {} }
+  if (!wid) wid = DEMO_WID;
+  if (!wid) { app.innerHTML = `<div class="wrap"><div class="empty"><em>${icoRings(32)}</em><p class="mut" style="margin:0">Örnek albüm henüz hazırlanmadı.</p><a class="btn pri" href="#/buy">Paketleri gör</a></div></div>`; return; }
+  const w = await getWedding(wid); if (!w) return notFound();
+  theme(w); logEv('demo_view', wid);
+  let ph = [];
+  try { ph = (await db.collection(`weddings/${wid}/photos`).where('status', '==', 'approved').orderBy('createdAt', 'desc').limit(60).get()).docs.map(d => ({id: d.id, ...d.data()})); }
+  catch (e) { console.warn('örnek albüm', e); }
+  const media = ph.filter(p => p.type !== 'audio'), vids = media.filter(p => p.type === 'video').length;
+  const wishes = ph.filter(p => p.note && p.note.trim()).slice(0, 6), guests = new Set(ph.map(p => p.uid)).size;
+  const th = w.theme || {}, iv = w.invite || {};
+  const bg = th.bg || (media.find(p => p.type === 'image') || {}).path || null;
+  const sub = [w.eventDate ? fmtDate(w.eventDate) : iv.date, iv.place].filter(Boolean).join(' · ') || 'Gerçek bir düğünden, misafirlerin paylaştığı kareler';
+  const ini = n => (n || '?').trim().split(/\s+/).slice(0, 2).map(x => x[0]).join('').toUpperCase();
+  app.innerHTML = `<div class="wrap wide">
+    <div class="row"><a class="mut" href="#/buy">← ${esc(BRAND)}</a><span class="sp"></span><span class="badge">Örnek albüm</span></div>
+    <div class="hero${bg ? ' has-bg' : ''}">${bg ? `<div class="bgimg" data-bgp="${esc(bg)}"></div>` : ''}<h1>${esc(w.title)}</h1><p${bg ? '' : ' class="mut"'}>${esc(sub)}</p></div>
+    ${media.length ? '' : '<!--'}<div class="demo-stats"><div><b>${media.length - vids}</b><span>fotoğraf</span></div><div><b>${vids}</b><span>video</span></div><div><b>${guests}</b><span>misafir paylaştı</span></div><div><b>${wishes.length}</b><span>dilek</span></div></div>${media.length ? '' : '-->'}
+    <h2>Misafirlerin gözünden</h2>
+    ${media.length ? `<div class="grid" id="dg">${media.map((p, i) => `<button class="ph" data-i="${i}" aria-label="${esc(p.name || 'Kare')}"><img data-p="${esc(p.thumbPath || (p.type === 'image' ? p.path : ''))}" alt="">${p.type === 'video' ? '<span class="vbadge">▶</span>' : ''}<b class="by">${esc(p.name || '')}</b></button>`).join('')}</div>`
+      : `<div class="empty"><em>${icoCamera(32)}</em><p class="mut" style="margin:0">Bu albümde henüz gösterilecek onaylı kare yok.</p></div>`}
+    ${wishes.length ? `<h2 style="margin-top:28px">Sevgi dolu mesajlar</h2><div class="wish-grid">${wishes.map(p => `<div class="wish"><em>${esc(ini(p.name))}</em><p>${esc(p.note)}</p><b>${esc(p.name || 'Misafir')}</b></div>`).join('')}</div>` : ''}
+    <h2 style="margin-top:28px">Nasıl çalışır?</h2>
+    <div class="steps">
+      <div class="step"><em>${icoQR(26)}</em><b>1. QR okutun</b><span>Masadaki kartı telefonla okutun, uygulama indirmeye gerek yok</span></div>
+      <div class="step"><em>${icoCamera(26)}</em><b>2. Paylaşın</b><span>Çektiğiniz fotoğraf ve videoları anında yükleyin</span></div>
+      <div class="step"><em>${icoRings(26)}</em><b>3. Çift görsün</b><span>Tüm anılar tek bir albümde, çift için hazır</span></div>
+    </div>
+    <div class="card demo-cta"><h2>Kendi albümünüzü oluşturun</h2><p class="mut">Ödemeden hemen sonra QR kodunuz ve albüm bağlantınız hazır. Misafirleriniz uygulama indirmeden yükler.</p><a class="btn pri" href="#/buy">Paketleri gör</a></div>
+  </div>`;
+  lazy(app); lazyBg(app);
+  app.querySelectorAll('#dg .ph').forEach(b => b.onclick = async () => {
+    const p = media[+b.dataset.i];
+    try { const url = await getUrl(p.path);
+      modal(`<div class="media">${p.type === 'video' ? `<video src="${url}" controls playsinline></video>` : `<img src="${url}" alt="${esc(p.name || 'Kare')}">`}</div><p style="margin:8px 0 0;font-size:.85rem">${esc(p.name || '')}</p>`, 'lb');
+    } catch (e) { toast('Açılamadı'); }
+  });
 }
 
 /* ===== Canlı duvar ===== */
@@ -935,9 +1184,14 @@ function printInvite(w, wid) {
   win.document.close();
 }
 
-function printKit(w, wid) {
-  const g = qrUrl(guestLink(w, wid), 12), name = esc(w.title), c = (w.theme && w.theme.color) || '#9a2e2a';
-  const win = window.open('', '_blank');
+async function printKit(w, wid) {
+  const win = window.open('', '_blank'); // popup engellenmesin diye await'ten önce, hemen açılır
+  const th = w.theme || {}, c = th.color || '#9a2e2a', frame = th.frame || 'classic';
+  const g = qrSvgUrl(guestLink(w, wid), c, 12), name = esc(w.title);
+  const bgUrl = th.qrBg ? await getUrl(th.qrBg).catch(() => null) : null;
+  const nameBlock = frame === 'minimal' && !bgUrl ? '' : `<h1>${name}</h1><div class="rule"></div>`;
+  const nameBlockSm = frame === 'minimal' && !bgUrl ? '' : `<h2>${name}</h2>`;
+  const frameExtra = frame === 'elegant' && !bgUrl ? ' elegant' : '';
   win.document.write(`<!doctype html><title>QR kartları</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,560&family=Work+Sans:wght@400;600&display=swap" rel="stylesheet">
@@ -945,14 +1199,20 @@ function printKit(w, wid) {
   @page{size:A4;margin:10mm}body{font-family:'Work Sans',system-ui,sans-serif;margin:0;color:#241e1b;background:#fff}
   h1,h2{font-family:'Fraunces',Georgia,serif;font-weight:560;letter-spacing:-.01em;margin:0}
   .frame{box-shadow:0 0 0 1px #e4d9c7,0 0 0 7px #fff,0 0 0 8px #e4d9c7;border-radius:6px;display:inline-block;padding:10px;background:#fff}
+  .frame.elegant{box-shadow:0 0 0 1px ${c},0 0 0 7px #fff,0 0 0 8px ${c}}
   .rule{width:46px;height:3px;background:${c};border-radius:2px;margin:5mm auto 0}
-  .sign{height:130mm;border:1.5px solid ${c};border-radius:6mm;text-align:center;padding:14mm 12mm;margin-bottom:8mm;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm}
+  .sign{height:130mm;border:1.5px solid ${c};border-radius:6mm;text-align:center;padding:14mm 12mm;margin-bottom:8mm;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm;position:relative;overflow:hidden}
+  .sign.elegant{box-shadow:0 0 0 1.5px ${c},0 0 0 7px #fff,0 0 0 8.5px ${c};border:none}
+  .sign.bgphoto{background-size:cover;background-position:center;justify-content:flex-end;gap:4mm;padding-bottom:16mm}
+  .sign.bgphoto .frame{background:#fff}
+  .sign.bgphoto h1,.sign.bgphoto p{background:rgba(255,255,255,.88);padding:2mm 6mm;border-radius:3mm}
   .sign h1{font-size:30pt}.sign .frame img{width:58mm;height:58mm}.sign p{font-size:14pt;color:#5c5349;margin:0}
   .cards{display:grid;grid-template-columns:1fr 1fr;gap:6mm}
   .card{border:1px solid #e4d9c7;border-radius:4mm;text-align:center;padding:7mm;height:72mm;break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3mm}
+  .card.elegant{border:1.5px solid ${c}}
   .card .frame{padding:5px}.card .frame img{width:30mm;height:30mm}.card h2{font-size:12.5pt}.card p{font-size:9pt;color:#5c5349;margin:0}</style>
-  <div class="sign"><h1>${name}</h1><div class="rule"></div><div class="frame"><img src="${g}" alt=""></div><p>Telefonunuzun kamerasını okutun,<br>fotoğraf ve videolarınızı bize gönderin.</p></div>
-  <div class="cards">${Array(6).fill(`<div class="card"><h2>${name}</h2><div class="frame"><img src="${g}" alt=""></div><p>Kareleri bizimle paylaşın</p></div>`).join('')}</div>
+  <div class="sign${frameExtra}${bgUrl ? ' bgphoto' : ''}"${bgUrl ? ` style="background-image:url(${bgUrl})"` : ''}>${nameBlock}<div class="frame${frameExtra}"><img src="${g}" alt=""></div><p>Telefonunuzun kamerasını okutun,<br>fotoğraf ve videolarınızı bize gönderin.</p></div>
+  <div class="cards">${Array(6).fill(`<div class="card${frameExtra}">${nameBlockSm}<div class="frame${frameExtra}"><img src="${g}" alt=""></div><p>Kareleri bizimle paylaşın</p></div>`).join('')}</div>
   <script>let p=0;const go=()=>{if(!p){p=1;print()}};(document.fonts&&document.fonts.ready?document.fonts.ready:Promise.resolve()).then(()=>setTimeout(go,250));setTimeout(go,1600)<\/script>`);
   win.document.close();
 }
@@ -1015,13 +1275,18 @@ async function admin() {
       <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift QR</figure></div>
       <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
       <details class="more"><summary>Diğer işlemler</summary><div class="row">
-      <button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">+2 GB ekle</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm bad" data-a="del">Sil</button></div></details></div>`; }).join('');
+      <button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">+2 GB ekle</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm" data-a="demo">Örnek albüm yap</button><button class="btn sm bad" data-a="del">Sil</button></div></details></div>`; }).join('');
     $('#ls').querySelectorAll('.card').forEach(c => {
       const it = items.find(x => x.id === c.dataset.id);
       c.querySelector('[data-a=print]').onclick = () => printKit(it.w, it.id);
       c.querySelector('[data-a=copy]').onclick = () => navigator.clipboard.writeText(link('a', it.id, it.key)).then(() => toast('Kopyalandı'));
       c.querySelector('[data-a=wa]').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(`${it.w.title} albümünüz hazır: ${link('a', it.id, it.key)}\nMisafir yükleme bağlantısı: ${guestLink(it.w, it.id)}`), '_blank');
       c.querySelector('[data-a=ord]').onclick = () => showOrders(it.id, it.w);
+      c.querySelector('[data-a=demo]').onclick = async () => {
+        if (!confirm('Bu düğünün ONAYLI fotoğrafları satış sayfasında herkese açık "örnek albüm" olarak gösterilecek ve misafir galerisi açılacak. Çiftin izni olduğundan emin olun. Devam edilsin mi?')) return;
+        try { await db.doc('config/demo').set({wid: it.id}); await db.doc('weddings/' + it.id).update({guestGallery: true}); toast('Örnek albüm ayarlandı'); window.open('#/ornek', '_blank'); }
+        catch (e) { toast('Ayarlanamadı: yönetici hesabı gerekir'); }
+      };
       c.querySelector('[data-a=mon]').onclick = async () => { const e = it.w.expiresAt.toDate(); e.setMonth(e.getMonth() + 6); await db.doc('weddings/' + it.id).update({expiresAt: firebase.firestore.Timestamp.fromDate(e), warned: false}); toast('Süre uzatıldı'); load(); };
       c.querySelector('[data-a=del]').onclick = async () => {
         if (prompt('Bu düğün ve tüm dosyaları kalıcı silinecek. Onay için düğün adını yazın:') !== it.w.title) return toast('İptal edildi');
@@ -1101,6 +1366,7 @@ async function adminCard() {
 }
 function buy(ref) {
   if (ref) localStorage.ref = ref;
+  db.doc('config/demo').get().then(s => { const el = $('#demoLink'); if (el && (s.exists && s.data().wid || DEMO_WID)) el.innerHTML = `<a class="btn" href="#/ornek">Örnek albümü gör</a> <span class="mut" style="font-size:.85rem">Gerçek bir düğünden, misafirlerin paylaştığı kareler</span>`; }).catch(() => {});
   logEv('buy_view');
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>${esc(BRAND)}</h1><p class="mut">Düğününüz için QR kodlu anı albümü. Ödemeden hemen sonra bağlantılarınız hazır olur.</p></div>
   <div class="steps">
@@ -1113,7 +1379,7 @@ function buy(ref) {
     <div class="feat"><em>${icoScreen(22)}</em><div><b>Canlı duvar</b><span>Yüklenen kareler salon ekranında anında akar (Plus ve üzeri)</span></div></div>
   </div>
   ${Object.entries(PK).map(([k, v], i) => `<label class="card pk-opt">${i === 1 ? '<span class="tag">Önerilen</span>' : ''}<input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''}><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quotaGB} GB · ${v.months} ay saklama${v.wall ? ' · canlı duvar' : ''}${v.ai ? ' · yapay zekâ seçimi' : ''}</span></span><b class="price">${v.price} TL</b></label>`).join('')}
-  ${DEMO_WID ? `<p><a class="btn" href="#/u/${DEMO_WID}">Örnek galeriyi gör</a></p>` : ''}
+  <p id="demoLink"></p>
   <div class="card"><label class="f">Çift adı (ör. Ayşe &amp; Mehmet)<input id="b1"></label>
   <label class="f">Düğün tarihi<input id="b6" type="date"></label>
   <div class="row"><label class="f sp">Ad<input id="b2" autocomplete="given-name"></label><label class="f sp">Soyad<input id="b3" autocomplete="family-name"></label></div>
