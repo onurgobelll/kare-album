@@ -117,6 +117,14 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .wish em{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-style:normal;font-weight:600;font-size:.8rem;margin-bottom:8px}
 .wish p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:.95rem;margin:0 0 8px;color:var(--ink)}
 .wish b{font-size:.78rem;font-weight:500;color:var(--mut)}
+.cmp-wrap{overflow-x:auto;margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card)}
+.cmp{border-collapse:collapse;width:100%;min-width:420px;font-size:.88rem}
+.cmp th,.cmp td{padding:9px 10px;text-align:center;border-bottom:1px solid var(--line)}
+.cmp td:first-child,.cmp th:first-child{text-align:left}
+.cmp tr:last-child td{border-bottom:0}
+.cmp th{font-family:'Fraunces',Georgia,serif;font-weight:560}.cmp th small{display:block;font-family:'Work Sans',system-ui,sans-serif;font-weight:400;color:var(--mut);font-size:.78rem}
+.cmp .yes{color:var(--ok);font-weight:700}.cmp .no{color:var(--mut)}.cmp .xt{font-size:.78rem;color:var(--mut)}
+.pktab input[type=text],.pktab input[type=number]{width:100%;min-width:64px}
 .demo-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:0 0 26px}
 .demo-stats div{background:var(--card);border:1px solid var(--line);border-radius:var(--r-sm);padding:14px 8px;text-align:center}
 .demo-stats b{display:block;font-family:'Fraunces',Georgia,serif;font-size:1.6rem;font-weight:560;color:var(--ac);line-height:1.1}
@@ -151,6 +159,7 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .lb img,.lb video{max-width:100%;max-height:68vh;border-radius:8px}
 .lb .btn{background:#222;color:#fff;border-color:#444}
 table{width:100%;border-collapse:collapse;font-size:.9rem}td,th{text-align:left;padding:6px 4px;border-top:1px solid var(--line)}
+.badge.warn{background:#fdf0d5;color:#8a5a00}
 .badge{font-size:.75rem;padding:2px 9px;border-radius:99px;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-weight:600}
 .toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:10px 18px;border-radius:99px;z-index:99;font-size:.9rem}
 .links a{word-break:break-all;font-size:.8rem}
@@ -213,21 +222,33 @@ const CFG = {                          // Firebase konsolundan kopyalayın
   messagingSenderId: '476715654923',
   appId: '1:476715654923:web:d396c64248bc1f76f54c0e'
 };
+const PAY_LIVE = false;                // iyzico bağlanıp ödeme fonksiyonu test edilince true yapın
 const FN_URL = '/api';                 // ödeme fonksiyonlarının adresi (firebase.json rewrite). Hosting başka yerdeyse tam URL yazın
 const SLUG_DOMAIN = '';                // örn. 'kare.com' → https://ayse-mehmet.kare.com (tools/worker.js gerekir). Boşsa #/s/kisa-ad kullanılır
 const PK = {                           // Panelde "Paketler ve Fiyatlandırma" bölümünden değiştirilebilir. Buradakiler yalnızca ilk kurulum / yedek değer.
-  basic:   {n:'Temel',   quotaGB:4,  wall:false, ai:false, months:6,  price:1490},
-  plus:    {n:'Plus',    quotaGB:12, wall:true,  ai:false, months:12, price:2990},
-  premium: {n:'Premium', quotaGB:30, wall:true,  ai:true,  months:24, price:4990}
+  basic:   {n:'Temel',   quotaGB:4,  months:6,  price:1490, wall:false, find:false, people:false, best:false, highlight:false, invite:true, audio:true, zip:true, print:true, extra:''},
+  plus:    {n:'Plus',    quotaGB:12, months:12, price:2990, wall:true,  find:false, people:false, best:false, highlight:false, invite:true, audio:true, zip:true, print:true, extra:''},
+  premium: {n:'Premium', quotaGB:30, months:24, price:4990, wall:true,  find:true,  people:true,  best:true,  highlight:true,  invite:true, audio:true, zip:true, print:true, extra:''}
 };
+// Panelden her paket için ayrı ayrı açılıp kapatılabilen özellikler (satış sayfasındaki karşılaştırma tablosu da buradan çizilir)
+const FEATS = [
+  {k:'wall', n:'Canlı duvar (salon ekranı)'}, {k:'find', n:'Beni bul (selfie ile fotoğraf bulma)'}, {k:'people', n:'Kişiler (yüz gruplama)'},
+  {k:'best', n:'Öne çıkanlar, bulanık ve tekrar ayıklama'}, {k:'highlight', n:'Highlight videosu'}, {k:'invite', n:'Dijital davetiye ve katılım bildirimi'},
+  {k:'audio', n:'Sesli dilek'}, {k:'zip', n:'ZIP ile toplu indirme'}, {k:'print', n:'Baskı siparişi'}
+];
+// Eski kayıtlarda (yalnızca wall/ai varken) eksik özellikler: yapay zekâ özellikleri eski 'ai' anahtarını izler, diğerleri açık
+const LEGACY_AI = ['find', 'people', 'best', 'highlight'];
+function normPK() { for (const p of Object.values(PK)) for (const f of FEATS) if (p[f.k] === undefined) p[f.k] = LEGACY_AI.includes(f.k) ? !!p.ai : true; }
+const can = (pkg, f) => !!(PK[pkg] || PK.basic)[f];
 const GB = 1073741824;
 let pkLoaded = false;
 async function loadPK() {   // config/packages dokümanı varsa üstüne yazar; PK nesnesinin referansı aynı kalır, her yerde otomatik günceller
   if (pkLoaded) return; pkLoaded = true;
   try {
     const s = await db.doc('config/packages').get();
-    if (s.exists) { const d = s.data(); for (const k of Object.keys(PK)) if (d[k]) Object.assign(PK[k], d[k]); }
+    if (s.exists) { const d = s.data(); for (const k of Object.keys(PK)) if (d[k]) { for (const f of FEATS) if (d[k][f.k] === undefined) delete PK[k][f.k]; Object.assign(PK[k], d[k]); } }
   } catch (e) { console.error('loadPK', e); }
+  normPK();
 }
 const APPCHECK_KEY = '';               // reCAPTCHA v3 site anahtarı (App Check). Boşsa kapalı
 const DEMO_WID = '';                   // satış sayfasındaki "örnek galeri" için bir düğün id (galeri açık, yükleme kapalı)
@@ -461,6 +482,7 @@ async function uploadFile(wid, w, job, onProg, onStage) {
 async function guest(wid, mode) {
   const u = await anon();
   const w = await getWedding(wid); if (!w) return notFound(); theme(w);
+  if (mode === 'i' && !can(w.pkg, 'invite')) return notFound();
   logEv(mode === 'i' ? 'invite_view' : 'guest_view', wid);
   const brand = (w.brand && w.brand.name) || BRAND;
   const expired = w.expiresAt && w.expiresAt.toMillis() < Date.now();
@@ -503,13 +525,13 @@ async function guest(wid, mode) {
     <div class="row">
       <label class="btn pri">${t('pick')}<input hidden type="file" id="fi" multiple accept="image/*,video/*"></label>
       <label class="btn">${t('cam')}<input hidden type="file" id="fc" accept="image/*,video/*" capture="environment"></label>
-      <button class="btn" id="rec" type="button">${t('rec')}</button>
+      ${can(w.pkg, 'audio') ? `<button class="btn" id="rec" type="button">${t('rec')}</button>` : ''}
     </div>
     <p class="mut" style="font-size:.78rem;margin:8px 0 0">${t('wifi')}</p>
     <div class="qhead" id="qhead" hidden><b id="qsum"></b><span class="sp"></span><button type="button" class="btn sm" id="qcan">${t('cancelall')}</button></div>
     <ul id="qlist"></ul></div>`;
-  if (inv) html += `<p><a href="#/i/${wid}">${t('invite')} / ${t('rsvp')}</a></p>`;
-  const canFind = w.guestGallery && (PK[w.pkg] || PK.basic).ai;
+  if (inv && can(w.pkg, 'invite')) html += `<p><a href="#/i/${wid}">${t('invite')} / ${t('rsvp')}</a></p>`;
+  const canFind = w.guestGallery && can(w.pkg, 'find');
   if (w.guestGallery) html += `<h2>${t('gal')}</h2>${canFind ? `<div class="card"><p class="mut" style="margin-top:0">${t('findinfo')}</p><label class="btn pri">${t('findme')}<input hidden type="file" id="sf" accept="image/*" capture="user"></label> <button class="btn" id="sfs" hidden>${t('stopb')}</button><p id="sfp" class="mut"></p><div id="sfr" class="grid"></div></div>` : ''}<div id="gal" class="grid"></div>`;
   html += `<p class="mut" style="margin-top:30px;font-size:.8rem">${esc(brand)}</p></div>`;
   app.innerHTML = html; bindLang(); lazyBg(app);
@@ -662,7 +684,7 @@ async function guest(wid, mode) {
   $('#fc').onchange = e => { add([...e.target.files]); e.target.value = ''; };
 
   let mr = null, chunks = [];
-  $('#rec').onclick = async () => {
+  if ($('#rec')) $('#rec').onclick = async () => {
     if (mr) { mr.stop(); return; }
     if (!$('#kv').checked) return toast(t('needc'));
     try {
@@ -766,10 +788,10 @@ async function album(wid, key) {
   let photos = [], filter = 'all', q = '', sel = new Set(), selMode = false;
   app.innerHTML = `<div class="wrap wide">
     <div class="topbar"><div class="row"><h2 id="ttl" style="margin:0"></h2><span class="badge" id="cnt"></span><span class="sp"></span>
-      <button class="btn sm" id="bSel">Seç</button><button class="btn sm" id="bZip">ZIP indir</button>
+      <button class="btn sm" id="bSel">Seç</button>${pk.zip ? '<button class="btn sm" id="bZip">ZIP indir</button>' : ''}
       <details class="more" style="margin:0"><summary>Diğer</summary><div class="row" style="margin-top:8px">
-      <button class="btn sm" id="bSt">İstatistik</button><button class="btn sm" id="bWi">Dilekler</button>${pk.ai ? '<button class="btn sm" id="bPe">Kişiler</button>' : ''}<button class="btn sm" id="bTh">Teşekkür</button>
-      <button class="btn sm" id="bPr">Baskı sipariş</button>${pk.ai ? '<button class="btn sm" id="bHl">Highlight videosu</button>' : ''}
+      <button class="btn sm" id="bSt">İstatistik</button><button class="btn sm" id="bWi">Dilekler</button>${pk.people ? '<button class="btn sm" id="bPe">Kişiler</button>' : ''}<button class="btn sm" id="bTh">Teşekkür</button>
+      ${pk.print ? '<button class="btn sm" id="bPr">Baskı sipariş</button>' : ''}${pk.highlight ? '<button class="btn sm" id="bHl">Highlight videosu</button>' : ''}
       ${pk.wall ? `<a class="btn sm" href="#/wall/${wid}/${key || ''}" target="_blank">Canlı duvar</a>` : ''}
       <button class="btn sm" id="bSet">Ayarlar</button></div></details></div></div>
     <div class="row" style="margin:10px 0"><input id="srch" placeholder="Ara: isim, not, pasta, dans, gelin…" style="max-width:320px">
@@ -778,7 +800,7 @@ async function album(wid, key) {
     <div class="grid" id="grid"></div></div>`;
 
   const tabs = [['all', 'Hepsi'], ['pending', 'Onay bekleyen'], ['fav', 'Favoriler'], ['video', 'Video/Ses']];
-  if (pk.ai) tabs.push(['best', 'Öne çıkanlar'], ['blur', 'Bulanık'], ['dupes', 'Tekrarlar']);
+  if (pk.best) tabs.push(['best', 'Öne çıkanlar'], ['blur', 'Bulanık'], ['dupes', 'Tekrarlar']);
   tabs.push(['hidden', 'Gizli']);
 
   const list = () => {
@@ -894,7 +916,7 @@ async function album(wid, key) {
     const baseClose = m.close; m.close = m.remove = () => { document.removeEventListener('keydown', navKey); baseClose(); };
   }
 
-  $('#bZip').onclick = async () => {
+  if ($('#bZip')) $('#bZip').onclick = async () => {
     const l = (selMode && sel.size ? photos.filter(p => sel.has(p.id)) : list()).filter(p => p.status !== 'hidden' || filter === 'hidden');
     if (!l.length) return toast('İndirilecek dosya yok');
     await zipPhotos(l, w.title, t => $('#prog').textContent = t); toast('ZIP hazır');
@@ -934,7 +956,7 @@ async function album(wid, key) {
     m.querySelector('#cp').onclick = () => navigator.clipboard.writeText(mails.join(', ')).then(() => toast('Kopyalandı'));
   };
 
-  $('#bPr').onclick = () => {
+  if ($('#bPr')) $('#bPr').onclick = () => {
     const ids = sel.size ? [...sel] : photos.filter(p => p.fav).map(p => p.id);
     const m = modal(`<h2>Baskı siparişi</h2><p class="${ids.length ? 'mut' : 'err'}">${ids.length ? ids.length + ' fotoğraf (' + (sel.size ? 'seçili' : 'favoriler') + ')' : 'Fotoğraf ürünleri için önce “Seç” ile fotoğraf seçin veya ★ ile favorileyin. QR ürünleri için gerekmez.'}</p>
       <label class="f">Ürün<select id="o1">${Object.entries(PRODUCTS).map(([k, v]) => `<option value="${k}">${esc(v.n)} — ${v.price} TL</option>`).join('')}</select></label>
@@ -952,13 +974,13 @@ async function album(wid, key) {
       m.remove(); toast('Siparişiniz alındı, sizi arayacağız');
     };
   };
-  if (pk.ai) $('#bHl').onclick = async () => {
+  if (pk.highlight) $('#bHl').onclick = async () => {
     if (w.highlightUrl) return window.open(w.highlightUrl, '_blank');
     if (w.highlightRequested) return toast('Videonuz hazırlanıyor');
     await db.doc('weddings/' + wid).update({highlightRequested: true}); toast('Talep alındı');
   };
 
-  if (pk.ai) $('#bPe').onclick = async () => {
+  if (pk.people) $('#bPe').onclick = async () => {
     const names = () => {
       const cnt = {}, first = {}; photos.forEach(p => (p.person || []).forEach(id => { cnt[id] = (cnt[id] || 0) + 1; first[id] = first[id] || p; }));
       const top = Object.entries(cnt).sort((a, b) => b[1] - a[1]).slice(0, 10), pn = w.personNames || {};
@@ -1033,7 +1055,7 @@ async function album(wid, key) {
       <label class="chk"><input type="checkbox" id="o2" ${w.moderation ? 'checked' : ''}><span>Moderasyon: onaylamadığım dosya galeride ve duvarda görünmesin</span></label>
       <label class="chk"><input type="checkbox" id="o3" ${w.guestGallery ? 'checked' : ''}><span>Misafirler onaylı galeriyi görsün ve beğensin</span></label>
       <label class="chk"><input type="checkbox" id="o4" ${w.originals ? 'checked' : ''}><span>Fotoğrafları orijinal boyutta sakla (kapalıyken 2560 px'e küçültülür: yükleme 5-8 kat hızlı, kota daha geç dolar, ekranda ve 13×18 baskıda fark edilmez)</span></label>
-      <h3>Dijital davetiye (isteğe bağlı)</h3>
+      <div ${pk.invite ? '' : 'hidden'}><h3>Dijital davetiye (isteğe bağlı)</h3>
       <label class="f">Görünüm<select id="i5"><option value="classic" ${iv.template !== 'modern' ? 'selected' : ''}>Klasik (ortalı)</option><option value="modern" ${iv.template === 'modern' ? 'selected' : ''}>Modern (sola yaslı)</option></select></label>
       <label class="f">Tarih / saat<input id="i1" value="${esc(iv.date || '')}" placeholder="12 Eylül 2026, 17:00"></label>
       <label class="f">Mekân<input id="i2" value="${esc(iv.place || '')}"></label>
@@ -1041,7 +1063,7 @@ async function album(wid, key) {
       <label class="f">Karşılama mesajı / davet metni<textarea id="i4" rows="2">${esc(iv.text || '')}</textarea></label>
       <label class="f">Hikayemiz (nasıl tanıştık, isteğe bağlı)<textarea id="i6" rows="3" placeholder="Birbirimizi nasıl tanıdığımızı, yolculuğumuzu kısaca anlatın…">${esc(iv.story || '')}</textarea></label>
       <label class="f">Günün programı (isteğe bağlı, her satıra bir madde)<textarea id="i7" rows="3" placeholder="16:00 Nikah Töreni&#10;17:30 Kokteyl&#10;19:00 Yemek ve Dans">${esc(iv.schedule || '')}</textarea></label>
-      <p class="mut" style="font-size:.8rem">Davetiye bağlantısı: ${esc(link('i', wid))}</p>
+      <p class="mut" style="font-size:.8rem">Davetiye bağlantısı: ${esc(link('i', wid))}</p></div>
       <button class="btn pri" id="sv">Kaydet</button>`);
     lazyBg(m);
     const qLink = guestLink(w, wid);
@@ -1267,27 +1289,38 @@ async function admin() {
   const isAdm = myRole === 'admin';
   db.doc('partners/' + u.uid).get().then(p => { if (p.exists) partnerCard(u, p.data()); }).catch(() => {});
   if (isAdm) adminCard().catch(e => console.error(e));
+  const METHODS = {cash: 'Elden', iban: 'IBAN / havale', pos: 'POS / kart'};
+  async function recordSale(wid, title, pkg, amount, method) {
+    if (!isAdm || !amount) return;
+    try { await db.collection('sales').add({wid, title, pkg, amount, partnerUid: null, pct: 0, commission: 0, paid: true, method, at: TS()}); }
+    catch (e) { console.warn('satış kaydı yazılamadı', e); toast('Düğün açıldı ama satış kaydı yazılamadı (kurallar güncel mi?)'); }
+  }
   $('#nw').onclick = () => {
     const m = modal(`<h2>Yeni düğün</h2>
       <label class="f">Çift / başlık (ör. Ayşe & Mehmet)<input id="a1"></label>
       <label class="f">Düğün tarihi<input id="a2" type="date"></label>
-      <label class="f">Paket<select id="a3">${Object.entries(PK).map(([k, v]) => `<option value="${k}">${v.n} — ${v.quotaGB} GB${v.wall ? ', canlı duvar' : ''}${v.ai ? ', yapay zekâ' : ''}</option>`).join('')}</select></label>
+      <label class="f">Paket<select id="a3">${Object.entries(PK).map(([k, v]) => `<option value="${k}">${v.n} — ${v.quotaGB} GB${v.wall ? ', canlı duvar' : ''}${LEGACY_AI.some(f => v[f]) ? ', yapay zekâ' : ''}</option>`).join('')}</select></label>
       <label class="f">Çift e-postası (süre hatırlatması için)<input id="a4" type="email"></label>
       <label class="f">Marka adı (beyaz etiket, boşsa ${BRAND})<input id="a5"></label>
       <label class="f">Kısa bağlantı adı (ör. ayse-mehmet, isteğe bağlı)<input id="a6" autocapitalize="none"></label>
+      <label class="f">Ödeme<select id="a7"><option value="paid:cash">Elden alındı</option><option value="paid:iban">IBAN / havale alındı</option><option value="paid:pos">POS / kart alındı</option><option value="pending">Ödeme bekliyor (taslak, yükleme kapalı)</option></select></label>
+      <label class="f">Tutar (TL)<input id="a8" type="number" inputmode="decimal" min="0"></label>
       <button class="btn pri" id="cr">Oluştur</button>`);
+    const a3 = m.querySelector('#a3'), a8 = m.querySelector('#a8'); const fillPrice = () => { a8.value = (PK[a3.value] || {}).price || ''; }; a3.onchange = fillPrice; fillPrice();
     m.querySelector('#cr').onclick = async () => {
       const g = s => m.querySelector(s).value.trim(), title = g('#a1'); if (!title) return m.querySelector('#a1').focus();
       const slug = g('#a6').toLowerCase();
       if (slug) { if (!/^[a-z0-9-]{3,30}$/.test(slug)) return toast('Kısa ad: 3-30 harf/rakam/tire'); if ((await db.doc('slugs/' + slug).get()).exists) return toast('Bu kısa ad alınmış'); }
       const id = rid(22), key = rid(12), pk = PK[g('#a3')], d = g('#a2') ? new Date(g('#a2')) : new Date();
       const exp = new Date(d); exp.setMonth(exp.getMonth() + pk.months);
-      await db.doc('weddings/' + id).set({title, pkg: g('#a3'), quotaGB: pk.quotaGB, usedBytes: 0, ownerUid: u.uid,
-        uploadOpen: true, moderation: false, guestGallery: false, theme: {color: '#9a2e2a'}, welcome: '', brand: g('#a5') ? {name: g('#a5')} : null, slug: slug || null, invite: null,
+      const pay = g('#a7'), pending = pay === 'pending';
+      await db.doc('weddings/' + id).set({title, pkg: g('#a3'), quotaGB: pk.quotaGB, usedBytes: 0, ownerUid: u.uid, payStatus: pending ? 'pending' : 'paid',
+        uploadOpen: !pending, moderation: false, guestGallery: false, theme: {color: '#9a2e2a'}, welcome: '', brand: g('#a5') ? {name: g('#a5')} : null, slug: slug || null, invite: null,
         createdAt: TS(), eventDate: firebase.firestore.Timestamp.fromDate(d), expiresAt: firebase.firestore.Timestamp.fromDate(exp)});
       await db.doc(`weddings/${id}/secret/k`).set({key, coupleEmail: g('#a4') || null});
       if (slug) await db.doc('slugs/' + slug).set({wid: id});
-      m.remove(); toast('Oluşturuldu'); load();
+      if (!pending) await recordSale(id, title, g('#a3'), Number(g('#a8')) || 0, pay.split(':')[1]);
+      m.remove(); toast(pending ? 'Taslak oluşturuldu, ödeme bekliyor' : 'Oluşturuldu'); load();
     };
   };
   async function load() {
@@ -1298,7 +1331,7 @@ async function admin() {
       const pct = Math.min(100, Math.round(((w.usedBytes || 0) / ((w.quotaGB || 1) * GB)) * 100));
       return `<div class="card" data-id="${id}"><div class="row"><h2 style="margin:0">${esc(w.title)}</h2><span class="badge">${pk.n}</span><span class="sp"></span>
       <span class="mut" style="font-size:.8rem">bitiş ${fmtDate(w.expiresAt)}</span></div>
-      <div class="stat-row"><i class="dot${w.uploadOpen ? '' : ' off'}"></i><span class="mut">${w.uploadOpen ? 'Yükleme açık' : 'Yükleme kapalı'}</span><span class="sp"></span><span class="mut">${fmtGB(w.usedBytes)}/${w.quotaGB || '?'} GB</span></div>
+      <div class="stat-row"><i class="dot${w.uploadOpen ? '' : ' off'}"></i><span class="mut">${w.uploadOpen ? 'Yükleme açık' : 'Yükleme kapalı'}</span>${w.payStatus === 'pending' ? '<span class="badge warn">Ödeme bekliyor</span><button class="btn sm pri" data-a="paid">Ödeme alındı</button>' : ''}<span class="sp"></span><span class="mut">${fmtGB(w.usedBytes)}/${w.quotaGB || '?'} GB</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <div class="tiles">
         <a class="tile" href="${lu}" target="_blank" rel="noopener"><em>${icoCamera(28)}</em><span>Misafir</span><b>yükleme sayfası</b></a>
@@ -1315,6 +1348,18 @@ async function admin() {
       c.querySelector('[data-a=copy]').onclick = () => navigator.clipboard.writeText(link('a', it.id, it.key)).then(() => toast('Kopyalandı'));
       c.querySelector('[data-a=wa]').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(`${it.w.title} albümünüz hazır: ${link('a', it.id, it.key)}\nMisafir yükleme bağlantısı: ${guestLink(it.w, it.id)}`), '_blank');
       c.querySelector('[data-a=ord]').onclick = () => showOrders(it.id, it.w);
+      const pb = c.querySelector('[data-a=paid]');
+      if (pb) pb.onclick = () => {
+        const w = it.w, mm = modal(`<h2>Ödeme alındı</h2><p class="mut">${esc(w.title)} albümü açılacak, yükleme başlayacak.</p>
+          <label class="f">Ödeme türü<select id="pm">${Object.entries(METHODS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
+          <label class="f">Tutar (TL)<input id="pa" type="number" inputmode="decimal" min="0" value="${(PK[w.pkg] || {}).price || ''}"></label>
+          <button class="btn pri" id="pok">Onayla</button>`);
+        mm.querySelector('#pok').onclick = async () => {
+          await db.doc('weddings/' + it.id).update({payStatus: 'paid', uploadOpen: true});
+          await recordSale(it.id, w.title, w.pkg, Number(mm.querySelector('#pa').value) || 0, mm.querySelector('#pm').value);
+          mm.remove(); toast('Ödeme kaydedildi, albüm açıldı'); load();
+        };
+      };
       c.querySelector('[data-a=demo]').onclick = async () => {
         if (!confirm('Bu düğünün ONAYLI fotoğrafları satış sayfasında herkese açık "örnek albüm" olarak gösterilecek ve misafir galerisi açılacak. Çiftin izni olduğundan emin olun. Devam edilsin mi?')) return;
         try { await db.doc('config/demo').set({wid: it.id}); await db.doc('weddings/' + it.id).update({guestGallery: true}); toast('Örnek albüm ayarlandı'); window.open('#/ornek', '_blank'); }
@@ -1349,17 +1394,14 @@ async function adminCard() {
   const usedGB = ws.docs.reduce((a, d) => a + (d.data().usedBytes || 0), 0) / GB, rev30 = s30.reduce((a, x) => a + (x.amount || 0), 0);
   const P = ps.docs.map(d => ({uid: d.id, ...d.data()}));
   const due = uid => S.filter(x => x.partnerUid === uid && !x.paid).reduce((a, x) => a + (x.commission || 0), 0);
-  const pkRow = ([k, v]) => `<tr data-pk="${k}">
-    <td>${esc(v.n)}</td>
-    <td><input type="number" min="0" step="0.5" value="${v.quotaGB}" data-f="quotaGB" style="width:64px"></td>
-    <td><input type="number" min="1" value="${v.months}" data-f="months" style="width:52px"></td>
-    <td><input type="number" min="0" value="${v.price}" data-f="price" style="width:76px"></td>
-    <td><input type="checkbox" ${v.wall ? 'checked' : ''} data-f="wall" style="width:auto"></td>
-    <td><input type="checkbox" ${v.ai ? 'checked' : ''} data-f="ai" style="width:auto"></td></tr>`;
   $('#pt').insertAdjacentHTML('beforeend', `<div class="card"><h2>Paketler ve Fiyatlandırma</h2>
-    <p class="mut" style="font-size:.85rem">Burada değiştirdiğin GB, süre ve fiyat satış sayfasına ve yeni düğün oluşturmaya hemen yansır. Maliyetini biliyorsan (Firebase faturası / GB) buna göre ayarla.</p>
-    <table><tr><th>Paket</th><th>GB</th><th>Ay</th><th>Fiyat (TL)</th><th>Canlı duvar</th><th>Yapay zekâ</th></tr>
-    ${Object.entries(PK).map(pkRow).join('')}</table>
+    <p class="mut" style="font-size:.85rem">Burada değiştirdiğin ad, fiyat, GB, süre ve özellikler satış sayfasındaki tabloya ve yeni düğünlere yansır. Mevcut düğünler de özellik değişikliğinden etkilenir (kota ve süre hariç). Maliyetini biliyorsan (Firebase faturası / GB) buna göre ayarla.</p>
+    <div class="cmp-wrap"><table class="cmp pktab"><tr><th>Özellik</th>${Object.entries(PK).map(([k, v]) => `<th><input type="text" data-pk="${k}" data-f="n" value="${esc(v.n)}"></th>`).join('')}</tr>
+    <tr><td>Fiyat (TL)</td>${Object.entries(PK).map(([k, v]) => `<td><input type="number" min="0" data-pk="${k}" data-f="price" value="${v.price}"></td>`).join('')}</tr>
+    <tr><td>Alan (GB)</td>${Object.entries(PK).map(([k, v]) => `<td><input type="number" min="0" step="0.5" data-pk="${k}" data-f="quotaGB" value="${v.quotaGB}"></td>`).join('')}</tr>
+    <tr><td>Saklama (ay)</td>${Object.entries(PK).map(([k, v]) => `<td><input type="number" min="1" data-pk="${k}" data-f="months" value="${v.months}"></td>`).join('')}</tr>
+    ${FEATS.map(f => `<tr><td>${f.n}</td>${Object.entries(PK).map(([k, v]) => `<td><input type="checkbox" style="width:auto" data-pk="${k}" data-f="${f.k}" ${v[f.k] ? 'checked' : ''}></td>`).join('')}</tr>`).join('')}
+    <tr><td>Ek avantaj (metin)</td>${Object.entries(PK).map(([k, v]) => `<td><input type="text" data-pk="${k}" data-f="extra" value="${esc(v.extra || '')}" placeholder="örn. 50 masa kartı baskısı dahil"></td>`).join('')}</tr></table></div>
     <button class="btn pri" id="pkSave" style="margin-top:10px">Paketleri kaydet</button> <em id="pkSt" class="mut" style="font-style:normal"></em></div>
     <div class="card"><h2>Son 30 gün</h2><table>
     <tr><td>Satış sayfası görüntüleme</td><td>${c.buy_view || 0}</td></tr><tr><td>Ödemeye geçen</td><td>${c.checkout || 0}</td></tr>
@@ -1383,11 +1425,13 @@ async function adminCard() {
   };
   $('#pkSave').onclick = async () => {
     const cfg = {};
-    for (const tr of document.querySelectorAll('[data-pk]')) {
-      const k = tr.dataset.pk, g = f => tr.querySelector(`[data-f="${f}"]`);
-      const quotaGB = +g('quotaGB').value, months = +g('months').value, price = +g('price').value;
-      if (!(quotaGB > 0) || !(months > 0) || !(price >= 0)) return toast(`${k}: GB, ay ve fiyat geçerli olmalı`);
-      cfg[k] = {n: PK[k].n, quotaGB, months, price, wall: g('wall').checked, ai: g('ai').checked};
+    for (const k of Object.keys(PK)) {
+      const g = f => document.querySelector(`[data-pk="${k}"][data-f="${f}"]`);
+      const quotaGB = +g('quotaGB').value, months = +g('months').value, price = +g('price').value, n = g('n').value.trim();
+      if (!n || !(quotaGB > 0) || !(months > 0) || !(price >= 0)) return toast(`${k}: ad, GB, ay ve fiyat geçerli olmalı`);
+      cfg[k] = {n, quotaGB, months, price, extra: g('extra').value.trim().slice(0, 80)};
+      for (const f of FEATS) cfg[k][f.k] = g(f.k).checked;
+      cfg[k].ai = LEGACY_AI.some(f => cfg[k][f]); // eski sürümlerle uyum
     }
     $('#pkSt').textContent = 'Kaydediliyor…';
     try {
@@ -1411,8 +1455,25 @@ function buy(ref) {
     <div class="feat"><em>${icoShield(22)}</em><div><b>Güvenli indirme</b><span>Düğün sonrası tüm fotoğraf ve videoları tek tıkla ZIP olarak indirin</span></div></div>
     <div class="feat"><em>${icoScreen(22)}</em><div><b>Canlı duvar</b><span>Yüklenen kareler salon ekranında anında akar (Plus ve üzeri)</span></div></div>
   </div>
-  ${Object.entries(PK).map(([k, v], i) => `<label class="card pk-opt">${i === 1 ? '<span class="tag">Önerilen</span>' : ''}<input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''}><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quotaGB} GB · ${v.months} ay saklama${v.wall ? ' · canlı duvar' : ''}${v.ai ? ' · yapay zekâ seçimi' : ''}</span></span><b class="price">${v.price} TL</b></label>`).join('')}
+  ${Object.entries(PK).map(([k, v], i) => `<label class="card pk-opt">${i === 1 ? '<span class="tag">Önerilen</span>' : ''}<input type="radio" name="pk" value="${k}" ${i === 1 ? 'checked' : ''}><span class="sp"><b>${v.n}</b><br><span class="mut">${v.quotaGB} GB · ${v.months} ay saklama</span></span><b class="price">${v.price} TL</b></label>`).join('')}
+  <h2 style="margin-top:6px">Paketleri karşılaştırın</h2>
+  <div class="cmp-wrap"><table class="cmp"><tr><th></th>${Object.values(PK).map(v => `<th>${esc(v.n)}<small>${v.price} TL</small></th>`).join('')}</tr>
+    <tr><td>Alan</td>${Object.values(PK).map(v => `<td>${v.quotaGB} GB</td>`).join('')}</tr>
+    <tr><td>Saklama süresi</td>${Object.values(PK).map(v => `<td>${v.months} ay</td>`).join('')}</tr>
+    ${FEATS.map(f => `<tr><td>${f.n}</td>${Object.values(PK).map(v => `<td>${v[f.k] ? '<span class="yes">✓</span>' : '<span class="no">—</span>'}</td>`).join('')}</tr>`).join('')}
+    ${Object.values(PK).some(v => v.extra) ? `<tr><td>Ek avantaj</td>${Object.values(PK).map(v => `<td class="xt">${esc(v.extra || '')}</td>`).join('')}</tr>` : ''}</table></div>
   <p id="demoLink"></p>
+  <h2>1. Albümünüzü tasarlayın</h2>
+  <div class="card">
+    <label class="f">Renk teması<div class="row swatches" id="bsw" style="margin-top:6px">${THEMES.map(([c, n]) => `<button type="button" class="swatch" data-c="${c}" style="background:${c}" title="${n}"></button>`).join('')}</div></label>
+    <label class="f">Çerçeve şablonu<div class="tpl-grid">
+      <label class="tpl-opt"><input type="radio" name="btpl" value="minimal"><b>Minimal</b><span>Sade, yalnızca QR</span></label>
+      <label class="tpl-opt"><input type="radio" name="btpl" value="classic" checked><b>Klasik</b><span>İsim + tarih</span></label>
+      <label class="tpl-opt"><input type="radio" name="btpl" value="elegant"><b>Zarif</b><span>Çift çerçeve</span></label></div></label>
+    <div class="qr-prev"><div class="qr-prev-card tpl-classic" id="bqc"><b id="bqt">Ayşe &amp; Mehmet</b><small id="bqd"></small><img id="bqi" alt=""><em>Masa kartı önizlemesi</em></div></div>
+    <p class="mut" style="font-size:.78rem;margin:0">Taslağınız bu cihazda otomatik saklanır. Arka plan fotoğrafını ödemeden sonra albüm ayarlarından ekleyebilirsiniz.</p>
+  </div>
+  <h2 style="margin-top:22px">2. Bilgiler ve ödeme</h2>
   <div class="card"><label class="f">Çift adı (ör. Ayşe &amp; Mehmet)<input id="b1"></label>
   <label class="f">Düğün tarihi<input id="b6" type="date"></label>
   <div class="row"><label class="f sp">Ad<input id="b2" autocomplete="given-name"></label><label class="f sp">Soyad<input id="b3" autocomplete="family-name"></label></div>
@@ -1420,19 +1481,44 @@ function buy(ref) {
   <label class="f">Telefon<input id="b5" type="tel" autocomplete="tel" placeholder="+905xxxxxxxxx"></label>
   <p class="err" id="be"></p><button class="btn pri" id="bp">Ödemeye geç</button></div>
   <p class="mut" style="font-size:.8rem"><a href="#/kvkk">Aydınlatma metni</a> · <a href="#/admin">Satıcı girişi</a></p></div>`;
+  // taslak: tasarım seçimi + form alanları localStorage'da tutulur, önizleme canlı güncellenir
+  const dr = (() => { try { return JSON.parse(localStorage.kdraft || '{}'); } catch (e) { return {}; } })();
+  let dColor = /^#[0-9a-f]{6}$/i.test(dr.color || '') ? dr.color : THEMES[0][0];
+  const dFrame = () => document.querySelector('input[name=btpl]:checked').value;
+  const dFields = {b1: 'title', b2: 'name', b3: 'surname', b4: 'email', b5: 'phone', b6: 'date'};
+  Object.entries(dFields).forEach(([id, k]) => { if (dr[k]) $('#' + id).value = dr[k]; });
+  if (dr.frame) { const r = document.querySelector(`input[name=btpl][value="${dr.frame}"]`); if (r) r.checked = true; }
+  if (dr.pkg) { const r = document.querySelector(`input[name=pk][value="${dr.pkg}"]`); if (r) r.checked = true; }
+  const dRender = () => {
+    $('#bqi').src = qrSvgUrl(location.origin + location.pathname, dColor, 5);
+    $('#bqc').style.setProperty('--qc', dColor); $('#bqc').className = 'qr-prev-card tpl-' + dFrame();
+    $('#bqt').textContent = $('#b1').value.trim() || 'Ayşe & Mehmet';
+    $('#bqd').textContent = $('#b6').value ? new Date($('#b6').value).toLocaleDateString('tr-TR', {day: 'numeric', month: 'long', year: 'numeric'}) : '';
+    document.querySelectorAll('#bsw .swatch').forEach(b => b.classList.toggle('on', b.dataset.c === dColor));
+    const o = {color: dColor, frame: dFrame(), pkg: document.querySelector('input[name=pk]:checked').value};
+    Object.entries(dFields).forEach(([id, k]) => o[k] = $('#' + id).value);
+    try { localStorage.kdraft = JSON.stringify(o); } catch (e) {}
+  };
+  document.querySelectorAll('#bsw .swatch').forEach(b => b.onclick = () => { dColor = b.dataset.c; dRender(); });
+  document.querySelectorAll('input[name=btpl],input[name=pk]').forEach(r => r.onchange = dRender);
+  Object.keys(dFields).forEach(id => $('#' + id).oninput = dRender);
+  dRender();
   $('#bp').onclick = async () => {
-    const v = id => $(id).value.trim(), body = {pkg: document.querySelector('input[name=pk]:checked').value, title: v('#b1'), name: v('#b2'), surname: v('#b3'), email: v('#b4'), phone: v('#b5'), date: v('#b6'), ref: localStorage.ref || ''};
+    const v = id => $(id).value.trim(), body = {color: dColor, frame: dFrame(), pkg: document.querySelector('input[name=pk]:checked').value, title: v('#b1'), name: v('#b2'), surname: v('#b3'), email: v('#b4'), phone: v('#b5'), date: v('#b6'), ref: localStorage.ref || ''};
     logEv('checkout');
     if (!body.title || !body.email) { $('#be').textContent = 'Çift adı ve e-posta gerekli.'; return; }
+    if (!PAY_LIVE) { $('#be').textContent = 'Online ödeme henüz aktif değil. Satın almak için bizimle iletişime geçin.'; return; }
     $('#bp').disabled = true; $('#be').textContent = '';
     try {
       const r = await fetch(FN_URL + '/createCheckout', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
+      if (!(r.headers.get('content-type') || '').includes('json')) throw new Error('Ödeme servisine ulaşılamadı, lütfen sonra tekrar deneyin.');
       const j = await r.json(); if (!j.url) throw new Error(j.error || 'Ödeme başlatılamadı');
       location.href = j.url;
     } catch (e) { $('#be').textContent = e.message; $('#bp').disabled = false; }
   };
 }
 async function done(wid, key) {
+  try { localStorage.removeItem('kdraft'); } catch (e) {}
   const w = await getWedding(wid); if (!w) return notFound(); theme(w);
   const lu = guestLink(w, wid), la = link('a', wid, key);
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>Ödemeniz alındı</h1><p class="mut">${esc(w.title)} albümünüz hazır. Bu bağlantıları saklayın; e-postanıza da gönderdik.</p></div>
