@@ -415,7 +415,8 @@ async function uploadFile(wid, w, job, onProg, onStage) {
   const f = job.up, mime = f.type || mime0;
   const e = (f.name && f.name.includes('.') ? ext(f.name) : mime.split('/')[1].split(';')[0]).replace(/[^a-z0-9]/g, '').slice(0, 5) || 'bin';
   const path = job.path || (job.path = `weddings/${wid}/${job.id}.${e}`);
-  const meta = {contentType: mime, customMetadata: {uid}};
+  const CC = 'public,max-age=31536000,immutable';
+  const meta = {contentType: mime, cacheControl: CC, customMetadata: {uid}};
 
   // küçük resim ana dosyayla aynı anda hazırlanıp yüklenir (önceden sırayla bekliyordu)
   const thumbJob = (async () => {
@@ -424,7 +425,7 @@ async function uploadFile(wid, w, job, onProg, onStage) {
     const ph = (tb && type === 'image') ? (job.ph || (job.ph = await dhash(tb))) : null;
     if (!tb) return {thumbPath: null, ph};
     const thumbPath = `weddings/${wid}/t_${job.id}.jpg`;
-    if (!job.thumbDone) { chk(); await st.ref(thumbPath).put(tb, {contentType: 'image/jpeg', customMetadata: {uid}}); job.thumbDone = thumbPath;
+    if (!job.thumbDone) { chk(); await st.ref(thumbPath).put(tb, {contentType: 'image/jpeg', cacheControl: CC, customMetadata: {uid}}); job.thumbDone = thumbPath;
       if (job.cancelled) st.ref(thumbPath).delete().catch(() => {}); } // iptalden sonra biten küçük resim yetim kalmasın
     return {thumbPath, ph};
   })();
