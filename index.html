@@ -193,6 +193,17 @@ details.more[open] summary{margin-bottom:8px}
 .wtitle b{display:block;font-family:'Fraunces',serif;font-size:1.3rem;font-weight:560}
 .wtitle small{font-family:'Fraunces',serif;font-style:italic;opacity:.85;font-size:.9rem}
 @keyframes kb{from{transform:scale(1.001)}to{transform:scale(1.045)}}
+/* canlı duvar: sabit arka plan düzeni (çiftin seçtiği fotoğraf arkada kalır, misafir kareleri çerçeve olarak akar) */
+.wall .wbg{position:absolute;inset:0;background:#0d0b14 center/cover no-repeat;filter:brightness(.6) saturate(1.05);transform:scale(1.03)}
+.wall.mode-bg #stage{display:grid;place-items:center;padding:9vh 6vw 11vh}
+.wcard{position:relative;max-width:min(74vw,1100px);background:#fff;color:#241e1b;padding:12px 12px 0;border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.55);animation:fin .9s ease;display:flex;flex-direction:column;align-items:center;overflow:hidden}
+.wcard .wm{position:relative;display:grid;place-items:center}
+.wcard img,.wcard video{display:block;max-width:100%;max-height:calc(70vh - 96px);border-radius:8px;object-fit:contain}
+.wcard .vb{position:absolute;right:12px;bottom:12px;width:44px;height:44px;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;display:grid;place-items:center;font-size:1.1rem}
+.wcard .wph{width:min(60vw,640px);height:36vh;display:grid;place-items:center;font-size:3rem;color:#fff;background:#3b3550;border-radius:8px}
+.wcard .wcap{padding:12px 8px 14px;text-align:center;font-family:'Fraunces',Georgia,serif;font-size:1.25rem}
+.wcard .wcap small{display:block;font-size:.9rem;opacity:.75;font-family:inherit}
+@media (prefers-reduced-motion:reduce){.wcard{animation:none}}
 .wqr{position:absolute;right:18px;bottom:18px;z-index:3;background:#fff;color:#111;padding:8px;border-radius:12px;text-align:center;font-size:.7rem;width:130px}
 .wqr img{width:100%;image-rendering:pixelated}
 .fsb{position:absolute;top:14px;right:14px;z-index:3;opacity:.5}
@@ -1051,6 +1062,16 @@ async function album(wid, key) {
         </div><em id="qbst" class="mut" style="font-style:normal;font-size:.75rem">PNG/JPG, maks. 15 MB. QR kod üzerine otomatik yerleştirilir.</em>
       </label>
 
+      <div ${pk.wall ? '' : 'hidden'}><h3>Canlı duvar</h3>
+        <label class="f">Düzen<select id="wm"><option value="stream" ${th.wallMode !== 'bg' ? 'selected' : ''}>Akış: kareler ekranı tamamen kaplar</option><option value="bg" ${th.wallMode === 'bg' ? 'selected' : ''}>Sabit arka plan: seçtiğiniz fotoğraf arkada kalır, kareler çerçeve içinde akar</option></select></label>
+        <label class="f">Videolar<select id="wv"><option value="play" ${(th.wallVideos ? th.wallVideos === 'play' : th.wallMode !== 'bg') ? 'selected' : ''}>Sessiz oynat</option><option value="still" ${(th.wallVideos ? th.wallVideos === 'still' : th.wallMode === 'bg') ? 'selected' : ''}>Oynatma, yalnızca kapak karesi göster</option></select></label>
+        <label class="f">Duvar arka plan fotoğrafı (boşsa kapak fotoğrafı kullanılır)
+          <div class="row" style="margin-top:4px">
+            ${th.wallBg ? `<img data-bgp="${esc(th.wallBg)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--line)" alt="">` : ''}
+            <label class="btn sm">${th.wallBg ? 'Değiştir' : 'Fotoğraf seç'}<input hidden type="file" id="wbf" accept="image/*"></label>
+            ${th.wallBg ? '<button class="btn sm bad" id="wbx" type="button">Kaldır</button>' : ''}
+          </div><em id="wbst" class="mut" style="font-style:normal;font-size:.75rem">En fazla 15 MB. Sabit arka plan düzeninde kullanılır.</em>
+        </label></div>
       <label class="chk"><input type="checkbox" id="o1" ${w.uploadOpen ? 'checked' : ''}><span>Yükleme açık</span></label>
       <label class="chk"><input type="checkbox" id="o2" ${w.moderation ? 'checked' : ''}><span>Moderasyon: onaylamadığım dosya galeride ve duvarda görünmesin</span></label>
       <label class="chk"><input type="checkbox" id="o3" ${w.guestGallery ? 'checked' : ''}><span>Misafirler onaylı galeriyi görsün ve beğensin</span></label>
@@ -1100,6 +1121,23 @@ async function album(wid, key) {
       await db.doc('weddings/' + wid).update({'theme.qrBg': firebase.firestore.FieldValue.delete()});
       w.theme = {...th, qrBg: undefined}; delete w.theme.qrBg; m.remove(); toast('Tasarım kaldırıldı'); $('#bSet').click();
     };
+    const wbf = m.querySelector('#wbf');
+    if (wbf) wbf.onchange = async e => {
+      const f = e.target.files[0]; if (!f) return;
+      if (f.size > 15 * 1048576) return toast('Fotoğraf en fazla 15 MB olabilir');
+      m.querySelector('#wbst').textContent = 'Yükleniyor…';
+      try {
+        const wbPath = `weddings/${wid}/settings/wallbg.jpg`;
+        await st.ref(wbPath).put(f, {contentType: f.type});
+        await db.doc('weddings/' + wid).update({'theme.wallBg': wbPath});
+        w.theme = {...th, wallBg: wbPath}; m.remove(); toast('Duvar arka planı kaydedildi'); $('#bSet').click();
+      } catch (e2) { m.querySelector('#wbst').textContent = 'Yüklenemedi, tekrar deneyin'; }
+    };
+    const wbx = m.querySelector('#wbx');
+    if (wbx) wbx.onclick = async () => {
+      await db.doc('weddings/' + wid).update({'theme.wallBg': firebase.firestore.FieldValue.delete()});
+      w.theme = {...th}; delete w.theme.wallBg; m.remove(); toast('Duvar arka planı kaldırıldı'); $('#bSet').click();
+    };
     const bgf = m.querySelector('#bgf');
     if (bgf) bgf.onchange = async e => {
       const f = e.target.files[0]; if (!f) return;
@@ -1121,7 +1159,7 @@ async function album(wid, key) {
       const g = s => m.querySelector(s), has = g('#i1').value || g('#i2').value || g('#i3').value || g('#i4').value || g('#i6').value || g('#i7').value;
       const frame = document.querySelector('input[name=tpl]:checked').value;
       await db.doc('weddings/' + wid).update({
-        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value, 'theme.frame': frame,
+        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value, 'theme.frame': frame, 'theme.wallMode': g('#wm').value, 'theme.wallVideos': g('#wv').value,
         uploadOpen: g('#o1').checked, moderation: g('#o2').checked, guestGallery: g('#o3').checked, originals: g('#o4').checked,
         invite: has ? {date: g('#i1').value, place: g('#i2').value, map: g('#i3').value, text: g('#i4').value, story: g('#i6').value, schedule: g('#i7').value, template: g('#i5').value} : null
       });
@@ -1183,9 +1221,11 @@ async function wall(wid, key) {
     if (key) await db.doc(`weddings/${wid}/access/${u.uid}`).set({key});
     await db.collection(`weddings/${wid}/photos`).limit(1).get();
   } catch (e) { return keyForm(wid, !!key, 'wall'); }
-  app.innerHTML = `<div class="wall"><div class="wtitle"><b>${esc(w.title)}</b>${w.eventDate ? `<small>${fmtDate(w.eventDate)}</small>` : ''}</div><div id="stage"></div>
+  const wth = w.theme || {}, bgMode = wth.wallMode === 'bg', playVid = wth.wallVideos ? wth.wallVideos === 'play' : !bgMode;
+  app.innerHTML = `<div class="wall${bgMode ? ' mode-bg' : ''}">${bgMode ? '<div class="wbg" id="wbg"></div>' : ''}<div class="wtitle"><b>${esc(w.title)}</b>${w.eventDate ? `<small>${fmtDate(w.eventDate)}</small>` : ''}</div><div id="stage"></div>
     <div class="wqr"><img src="${qrUrl(guestLink(w, wid), 5)}" alt=""><span>Fotoğraf yükleyin</span></div><button class="btn sm fsb" id="fs">Tam ekran</button></div>`;
   $('#fs').onclick = () => { document.documentElement.requestFullscreen && document.documentElement.requestFullscreen(); $('#fs').remove(); };
+  if (bgMode) { const bp = wth.wallBg || wth.bg; if (bp) getUrl(bp).then(u => { const el = $('#wbg'); if (el) el.style.backgroundImage = `url(${u})`; }).catch(() => {}); }
   let items = [], fresh = [], idx = 0, first = true, alive = true;
   cleanup.push(() => alive = false);
   cleanup.push(db.collection(`weddings/${wid}/photos`).where('status', '==', 'approved').onSnapshot(s => {
@@ -1201,6 +1241,12 @@ async function wall(wid, key) {
       if (!p) { await sleep(1500); continue; }
       try {
         const url = await getUrl(p.path);
+        if (bgMode) {
+          const isV = p.type === 'video', play = isV && playVid, still = isV && !play && p.thumbPath ? await getUrl(p.thumbPath).catch(() => null) : null;
+          const media = play ? `<video src="${url}" autoplay muted playsinline></video>` : isV ? (still ? `<img src="${still}" alt=""><span class="vb">▶</span>` : '<div class="wph">▶</div>') : `<img src="${url}" alt="">`;
+          $('#stage').innerHTML = `<div class="wcard"><div class="wm">${media}</div><div class="wcap">${esc(p.name || '')}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div></div>`;
+          await sleep(play ? 12000 : 6500); continue;
+        }
         $('#stage').innerHTML = `<div class="slide">${p.type === 'video' ? `<video src="${url}" autoplay muted playsinline></video>` : `<img src="${url}" alt="">`}
           <div class="cap">${esc(p.name || '')}${p.note ? `<small>${esc(p.note)}</small>` : ''}</div></div>`;
       } catch (e) { await sleep(1000); continue; }
