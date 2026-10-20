@@ -117,6 +117,7 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .wish em{display:inline-flex;align-items:center;justify-content:center;width:36px;height:36px;border-radius:50%;background:color-mix(in srgb,var(--ac) 14%,#fff);color:var(--ac);font-style:normal;font-weight:600;font-size:.8rem;margin-bottom:8px}
 .wish p{font-family:'Fraunces',Georgia,serif;font-style:italic;font-size:.95rem;margin:0 0 8px;color:var(--ink)}
 .wish b{font-size:.78rem;font-weight:500;color:var(--mut)}
+.legal h2{margin-top:26px}.legal h3{margin:16px 0 4px;font-size:1rem}.legal p,.legal li{font-size:.92rem;line-height:1.55}.legal ul,.legal ol{padding-left:20px;margin:6px 0}
 .cmp-wrap{overflow-x:auto;margin:0 0 14px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--card)}
 .cmp{border-collapse:collapse;width:100%;min-width:420px;font-size:.88rem}
 .cmp th,.cmp td{padding:9px 10px;text-align:center;border-bottom:1px solid var(--line)}
@@ -223,6 +224,9 @@ details.more[open] summary{margin-bottom:8px}
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
 <script>
 /* ====== AYARLAR ====== */
+// Hukuki metinlerde görünen işletmeci bilgileri. Yalnızca e-posta gerekli (silme ve ihlal bildirimleri için); ad ve adres isteğe bağlı, boşsa görünmez
+const COMPANY = {name: '', address: '', email: ''};
+const LEGAL_V = '2026-10-v1';          // hukuki metin sürümü; metni değiştirince güncelleyin (misafir onayı bu sürümle kaydedilir)
 const BRAND = 'Kare';                 // varsayılan marka adı
 const WA_NUMBER = '905XXXXXXXXX';     // baskı siparişi WhatsApp numaranız
 const CFG = {                          // Firebase konsolundan kopyalayın
@@ -348,9 +352,9 @@ const notFound = () => app.innerHTML = `<div class="wrap"><h1>404</h1><p class="
 
 /* ===== Dil ===== */
 const T = {
-  tr: {name:'Adınız', note:'Not (isteğe bağlı)', mail:'E-posta (albüm bağlantısı için, isteğe bağlı)', consent:'Yüklediğim görüntülerin çift tarafından saklanmasını ve albümde gösterilmesini kabul ediyorum.', kvkk:'Aydınlatma metni', pick:'Fotoğraf / video seç', cam:'Kamera', rec:'Sesli dilek', stop:'Bitir ve gönder', wait:'Bekliyor', retry:'Tekrar', fail:'Hata', done:'Yüklendi', closed:'Yükleme şu an kapalı.', gal:'Galeri', welcome:'Bu günün karelerini bizimle paylaşın.', needc:'Önce onay kutusunu işaretleyin.', rsvp:'Katılım bildirimi', yes:'Katılacağım', no:'Katılamayacağım', cnt:'Kişi sayısı', send:'Gönder', sent:'Teşekkürler!', invite:'Davetiye', upl:'Fotoğraf yükle', leave:'Yükleme sürüyor, sayfayı kapatmayın.', big:'Dosya çok büyük (en fazla 2 GB)', badtype:'Desteklenmeyen dosya', findme:'Beni bul', findinfo:'Bir selfie çekin; içinde olduğunuz kareleri bulalım. Selfie yalnızca bu telefonda işlenir, hiçbir yere yüklenmez.', noface:'Selfie’de yüz bulunamadı. Yüzünüz aydınlık ve kadrajın ortasında olacak şekilde, telefonu biraz uzaktan tutarak tekrar deneyin.', scan:'Taranıyor', nomatch:'Sizi içeren kare bulunamadı.', found:'kare bulundu', stopb:'Durdur', cancel:'İptal', cancelled:'İptal edildi', retryb:'Tekrar dene', denied:'Yüklenemedi: yükleme kapalı ya da kota dolu', offline:'Bağlantı bekleniyor', prep:'Hazırlanıyor', stalled:'Bağlantı yavaş, yeniden deneniyor', ofdone:'yüklendi', cancelall:'Tümünü iptal et', wifi:'İpucu: videolar Wi‑Fi bağlantısında çok daha hızlı yüklenir. Yükleme bitene kadar bu sayfayı açık tutun.'},
-  en: {name:'Your name', note:'Note (optional)', mail:'Email (to get the album link, optional)', consent:'I agree that my uploads are stored by the couple and shown in the album.', kvkk:'Privacy notice', pick:'Choose photos / videos', cam:'Camera', rec:'Voice message', stop:'Finish and send', wait:'Waiting', retry:'Retry', fail:'Failed', done:'Uploaded', closed:'Uploads are closed right now.', gal:'Gallery', welcome:'Share your photos from this day with us.', needc:'Tick the consent box first.', rsvp:'RSVP', yes:'I will attend', no:'I cannot attend', cnt:'Guests', send:'Send', sent:'Thank you!', invite:'Invitation', upl:'Upload photos', leave:'Upload in progress, do not close the page.', big:'File too large (max 2 GB)', badtype:'Unsupported file', findme:'Find me', findinfo:'Take a selfie and we will find the photos you are in. The selfie is processed only on this phone and never uploaded.', noface:'No face found in the selfie. Try again with your face well lit and centred, holding the phone a little further away.', scan:'Scanning', nomatch:'No photos with you were found.', found:'photos found', stopb:'Stop', cancel:'Cancel', cancelled:'Cancelled', retryb:'Retry', denied:'Could not upload: uploads closed or storage full', offline:'Waiting for connection', prep:'Preparing', stalled:'Slow connection, retrying', ofdone:'uploaded', cancelall:'Cancel all', wifi:'Tip: videos upload much faster on Wi‑Fi. Keep this page open until uploads finish.'},
-  de: {name:'Ihr Name', note:'Notiz (optional)', mail:'E-Mail (für den Album-Link, optional)', consent:'Ich stimme zu, dass meine Uploads vom Brautpaar gespeichert und im Album gezeigt werden.', kvkk:'Datenschutzhinweis', pick:'Fotos / Videos wählen', cam:'Kamera', rec:'Sprachnachricht', stop:'Beenden und senden', wait:'Wartet', retry:'Erneut', fail:'Fehler', done:'Hochgeladen', closed:'Uploads sind derzeit geschlossen.', gal:'Galerie', welcome:'Teilen Sie Ihre Fotos von diesem Tag mit uns.', needc:'Bitte zuerst die Einwilligung ankreuzen.', rsvp:'Zusage', yes:'Ich komme', no:'Ich kann nicht kommen', cnt:'Personen', send:'Senden', sent:'Danke!', invite:'Einladung', upl:'Fotos hochladen', leave:'Upload läuft, Seite nicht schließen.', big:'Datei zu groß (max. 2 GB)', badtype:'Nicht unterstützte Datei', findme:'Finde mich', findinfo:'Machen Sie ein Selfie, wir finden die Fotos mit Ihnen. Das Selfie wird nur auf diesem Telefon verarbeitet und nie hochgeladen.', noface:'Kein Gesicht im Selfie gefunden, bitte erneut versuchen.', scan:'Suche', nomatch:'Keine Fotos mit Ihnen gefunden.', found:'Fotos gefunden', stopb:'Stopp', cancel:'Abbrechen', cancelled:'Abgebrochen', retryb:'Erneut versuchen', denied:'Upload nicht möglich: geschlossen oder Speicher voll', offline:'Warte auf Verbindung', prep:'Wird vorbereitet', stalled:'Langsame Verbindung, neuer Versuch', ofdone:'hochgeladen', cancelall:'Alle abbrechen', wifi:'Tipp: Videos laden über WLAN deutlich schneller hoch. Lassen Sie diese Seite bis zum Ende geöffnet.'}
+  tr: {name:'Adınız', note:'Not (isteğe bağlı)', mail:'E-posta (albüm bağlantısı için, isteğe bağlı)', consent:'Yüklediğim içeriklerin çift tarafından saklanmasını, albümde gösterilmesini ve verilerimin yurt dışındaki (Almanya) sunucularda işlenmesini kabul ediyorum.', consent2:'Yüklediğim içeriğin hukuka uygun olduğunu, bana ait olduğunu ya da yükleme hakkım bulunduğunu, görüntülerde yer alan kişilerin gerekli izinlerini aldığımı ve içerikten sorumlu olduğumu beyan ederim.', terms:'Yükleme koşulları', kvkk:'Aydınlatma metni', pick:'Fotoğraf / video seç', cam:'Kamera', rec:'Sesli dilek', stop:'Bitir ve gönder', wait:'Bekliyor', retry:'Tekrar', fail:'Hata', done:'Yüklendi', closed:'Yükleme şu an kapalı.', gal:'Galeri', welcome:'Bu günün karelerini bizimle paylaşın.', needc:'Önce iki onay kutusunu da işaretleyin.', rsvp:'Katılım bildirimi', yes:'Katılacağım', no:'Katılamayacağım', cnt:'Kişi sayısı', send:'Gönder', sent:'Teşekkürler!', invite:'Davetiye', upl:'Fotoğraf yükle', leave:'Yükleme sürüyor, sayfayı kapatmayın.', big:'Dosya çok büyük (en fazla 2 GB)', badtype:'Desteklenmeyen dosya', findme:'Beni bul', findinfo:'Bir selfie çekin; içinde olduğunuz kareleri bulalım. Selfie yalnızca bu telefonda işlenir, hiçbir yere yüklenmez.', noface:'Selfie’de yüz bulunamadı. Yüzünüz aydınlık ve kadrajın ortasında olacak şekilde, telefonu biraz uzaktan tutarak tekrar deneyin.', scan:'Taranıyor', nomatch:'Sizi içeren kare bulunamadı.', found:'kare bulundu', stopb:'Durdur', cancel:'İptal', cancelled:'İptal edildi', retryb:'Tekrar dene', denied:'Yüklenemedi: yükleme kapalı ya da kota dolu', offline:'Bağlantı bekleniyor', prep:'Hazırlanıyor', stalled:'Bağlantı yavaş, yeniden deneniyor', ofdone:'yüklendi', cancelall:'Tümünü iptal et', wifi:'İpucu: videolar Wi‑Fi bağlantısında çok daha hızlı yüklenir. Yükleme bitene kadar bu sayfayı açık tutun.'},
+  en: {name:'Your name', note:'Note (optional)', mail:'Email (to get the album link, optional)', consent:'I agree that my uploads are stored by the couple, shown in the album, and that my data is processed on servers outside Turkey (Germany).', consent2:'I declare that my upload is lawful, that it is mine or I have the right to upload it, that I have obtained the necessary permission of the people shown, and that I am responsible for it.', terms:'Upload terms', kvkk:'Privacy notice', pick:'Choose photos / videos', cam:'Camera', rec:'Voice message', stop:'Finish and send', wait:'Waiting', retry:'Retry', fail:'Failed', done:'Uploaded', closed:'Uploads are closed right now.', gal:'Gallery', welcome:'Share your photos from this day with us.', needc:'Please tick both consent boxes first.', rsvp:'RSVP', yes:'I will attend', no:'I cannot attend', cnt:'Guests', send:'Send', sent:'Thank you!', invite:'Invitation', upl:'Upload photos', leave:'Upload in progress, do not close the page.', big:'File too large (max 2 GB)', badtype:'Unsupported file', findme:'Find me', findinfo:'Take a selfie and we will find the photos you are in. The selfie is processed only on this phone and never uploaded.', noface:'No face found in the selfie. Try again with your face well lit and centred, holding the phone a little further away.', scan:'Scanning', nomatch:'No photos with you were found.', found:'photos found', stopb:'Stop', cancel:'Cancel', cancelled:'Cancelled', retryb:'Retry', denied:'Could not upload: uploads closed or storage full', offline:'Waiting for connection', prep:'Preparing', stalled:'Slow connection, retrying', ofdone:'uploaded', cancelall:'Cancel all', wifi:'Tip: videos upload much faster on Wi‑Fi. Keep this page open until uploads finish.'},
+  de: {name:'Ihr Name', note:'Notiz (optional)', mail:'E-Mail (für den Album-Link, optional)', consent:'Ich stimme zu, dass meine Uploads vom Brautpaar gespeichert, im Album gezeigt und meine Daten auf Servern außerhalb der Türkei (Deutschland) verarbeitet werden.', consent2:'Ich erkläre, dass mein Upload rechtmäßig ist, mir gehört oder ich zum Hochladen berechtigt bin, ich die nötige Erlaubnis der abgebildeten Personen eingeholt habe und für den Inhalt verantwortlich bin.', terms:'Upload-Bedingungen', kvkk:'Datenschutzhinweis', pick:'Fotos / Videos wählen', cam:'Kamera', rec:'Sprachnachricht', stop:'Beenden und senden', wait:'Wartet', retry:'Erneut', fail:'Fehler', done:'Hochgeladen', closed:'Uploads sind derzeit geschlossen.', gal:'Galerie', welcome:'Teilen Sie Ihre Fotos von diesem Tag mit uns.', needc:'Bitte zuerst beide Kästchen ankreuzen.', rsvp:'Zusage', yes:'Ich komme', no:'Ich kann nicht kommen', cnt:'Personen', send:'Senden', sent:'Danke!', invite:'Einladung', upl:'Fotos hochladen', leave:'Upload läuft, Seite nicht schließen.', big:'Datei zu groß (max. 2 GB)', badtype:'Nicht unterstützte Datei', findme:'Finde mich', findinfo:'Machen Sie ein Selfie, wir finden die Fotos mit Ihnen. Das Selfie wird nur auf diesem Telefon verarbeitet und nie hochgeladen.', noface:'Kein Gesicht im Selfie gefunden, bitte erneut versuchen.', scan:'Suche', nomatch:'Keine Fotos mit Ihnen gefunden.', found:'Fotos gefunden', stopb:'Stopp', cancel:'Abbrechen', cancelled:'Abgebrochen', retryb:'Erneut versuchen', denied:'Upload nicht möglich: geschlossen oder Speicher voll', offline:'Warte auf Verbindung', prep:'Wird vorbereitet', stalled:'Langsame Verbindung, neuer Versuch', ofdone:'hochgeladen', cancelall:'Alle abbrechen', wifi:'Tipp: Videos laden über WLAN deutlich schneller hoch. Lassen Sie diese Seite bis zum Ende geöffnet.'}
 };
 let lang = localStorage.lang || ({tr:'tr', de:'de'}[navigator.language.slice(0, 2)] || 'en');
 const t = k => (T[lang] && T[lang][k]) || T.tr[k] || k;
@@ -369,7 +373,7 @@ async function route() {
     else if (k === 'i') await guest(a, 'i');
     else if (k === 'a') await album(a, b);
     else if (k === 'wall') await wall(a, b);
-    else if (k === 'kvkk') kvkk();
+    else if (k === 'kvkk') kvkk(a);
     else if (k === 'ornek') await demo(a);
     else if (k === 's') { const sn = await db.doc('slugs/' + a).get(); if (!sn.exists) return notFound(); location.replace('#/u/' + sn.data().wid); }
     else if (k === 'buy') buy(a);
@@ -532,7 +536,8 @@ async function guest(wid, mode) {
     <label class="f">${t('name')}<input id="nm" autocomplete="name" value="${esc(localStorage.gname || '')}"></label>
     <label class="f">${t('note')}<input id="nt" maxlength="140"></label>
     <label class="f">${t('mail')}<input id="em" type="email" autocomplete="email" value="${esc(localStorage.gmail || '')}"></label>
-    <label class="chk"><input type="checkbox" id="kv"><span>${t('consent')} <a href="#/kvkk">${t('kvkk')}</a></span></label>
+    <label class="chk"><input type="checkbox" id="kv"><span>${t('consent')} <a href="#/kvkk" target="_blank" rel="noopener">${t('kvkk')}</a></span></label>
+    <label class="chk"><input type="checkbox" id="kv2"><span>${t('consent2')} <a href="#/kvkk/kosullar" target="_blank" rel="noopener">${t('terms')}</a></span></label>
     <div class="row">
       <label class="btn pri">${t('pick')}<input hidden type="file" id="fi" multiple accept="image/*,video/*"></label>
       <label class="btn">${t('cam')}<input hidden type="file" id="fc" accept="image/*,video/*" capture="environment"></label>
@@ -672,10 +677,11 @@ async function guest(wid, mode) {
   }
   $('#qcan').onclick = () => [...jobs].forEach(j => { if (!j.final) cancelJob(j); });
   async function add(files) {
-    if (!$('#kv').checked) { toast(t('needc')); return; }
+    if (!$('#kv').checked || !$('#kv2').checked) { toast(t('needc')); return; }
     const name = $('#nm').value.trim() || 'Misafir', note = $('#nt').value.trim(), email = $('#em').value.trim();
     localStorage.gname = name; localStorage.gmail = email;
-    db.doc(`weddings/${wid}/guests/${u.uid}`).set({name, email, createdAt: TS()}).catch(() => {});
+    const gref = db.doc(`weddings/${wid}/guests/${u.uid}`); // onay sürümü kayda geçer (kanıt); kural eski ise yalnızca ad/e-posta yazılır
+    gref.set({name, email, createdAt: TS(), consent: LEGAL_V}).catch(() => gref.set({name, email, createdAt: TS()}).catch(() => {}));
     for (const f of files) {
       const id = db.collection('x').doc().id, li = document.createElement('li');
       const mt = f.type || MIME[f.name && f.name.includes('.') ? ext(f.name) : ''] || '';
@@ -1175,7 +1181,8 @@ async function demo(widArg) {
   if (!wid) { try { const s = await db.doc('config/demo').get(); if (s.exists) wid = s.data().wid || ''; } catch (e) {} }
   if (!wid) wid = DEMO_WID;
   if (!wid) { app.innerHTML = `<div class="wrap"><div class="empty"><em>${icoRings(32)}</em><p class="mut" style="margin:0">Örnek albüm henüz hazırlanmadı.</p><a class="btn pri" href="#/buy">Paketleri gör</a></div></div>`; return; }
-  const w = await getWedding(wid); if (!w) return notFound();
+  const w = await getWedding(wid);
+  if (!w) { app.innerHTML = `<div class="wrap"><div class="empty"><em>${icoRings(32)}</em><p class="mut" style="margin:0">Örnek albüm şu an hazır değil.</p><a class="btn pri" href="#/buy">Paketleri gör</a></div></div>`; return; }
   theme(w); logEv('demo_view', wid);
   let ph = [];
   try { ph = (await db.collection(`weddings/${wid}/photos`).where('status', '==', 'approved').orderBy('createdAt', 'desc').limit(60).get()).docs.map(d => ({id: d.id, ...d.data()})); }
@@ -1489,7 +1496,7 @@ async function adminCard() {
 }
 function buy(ref) {
   if (ref) localStorage.ref = ref;
-  db.doc('config/demo').get().then(s => { const el = $('#demoLink'); if (el && (s.exists && s.data().wid || DEMO_WID)) el.innerHTML = `<a class="btn" href="#/ornek">Örnek albümü gör</a> <span class="mut" style="font-size:.85rem">Gerçek bir düğünden, misafirlerin paylaştığı kareler</span>`; }).catch(() => {});
+  db.doc('config/demo').get().then(async s => { const el = $('#demoLink'), dw = (s.exists && s.data().wid) || DEMO_WID; if (!el || !dw || !(await db.doc('weddings/' + dw).get()).exists) return; el.innerHTML = `<a class="btn" href="#/ornek">Örnek albümü gör</a> <span class="mut" style="font-size:.85rem">Gerçek bir düğünden, misafirlerin paylaştığı kareler</span>`; }).catch(() => {});
   logEv('buy_view');
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>${esc(BRAND)}</h1><p class="mut">Düğününüz için QR kodlu anı albümü. Ödemeden hemen sonra bağlantılarınız hazır olur.</p></div>
   <div class="steps">
@@ -1575,17 +1582,70 @@ async function done(wid, key) {
   $('#pk').onclick = () => printKit(w, wid);
 }
 
-function kvkk() {
-  app.innerHTML = `<div class="wrap"><h1>Aydınlatma metni</h1>
-  <p>Bu sayfa, fotoğraf ve video yüklediğinizde kişisel verilerinizin nasıl işlendiğini açıklar. <b>Yayına almadan önce bir hukukçuya gözden geçirtin ve firma bilgilerinizi ekleyin.</b></p>
-  <p><b>Veri sorumlusu:</b> [Firma unvanı, adres, e-posta].</p>
-  <p><b>İşlenen veriler:</b> yüklediğiniz fotoğraf/video/ses kayıtları, yazdığınız ad ve not, isteğe bağlı e-posta adresi.</p>
-  <p><b>Amaç:</b> görüntülerin ilgili çifte iletilmesi ve çiftin belirlediği şekilde albümde gösterilmesi. E-posta yalnızca teşekkür/albüm bağlantısı için kullanılır.</p>
-  <p><b>Yüz tanıma (yalnızca Premium):</b> çift isterse fotoğraflardaki yüzler çiftin cihazında gruplanır; yüz verisi saklanmaz, yalnızca grup numarası kaydedilir. Yüz verisi biyometrik veri sayıldığından bu özelliği kullanmadan önce açık rıza metni ekleyin.</p>
-  <p><b>“Beni bul” (selfie ile arama):</b> selfie yalnızca misafirin kendi telefonunda işlenir; sunucuya yüklenmez ve saklanmaz.</p>
-  <p><b>Saklama:</b> paket süresi sonunda dosyalar silinir.</p>
-  <p><b>Haklarınız:</b> silme ve bilgi talepleriniz için veri sorumlusuna yazın; yüklediğiniz dosyanın silinmesini çiftten de isteyebilirsiniz.</p>
+function kvkk(sec) {
+  const op = [COMPANY.name, COMPANY.address].filter(Boolean).map(esc).join(', '), mail = COMPANY.email ? esc(COMPANY.email) : '[iletişim e-postası]';
+  app.innerHTML = `<div class="wrap legal"><h1>Aydınlatma Metni ve Yükleme Koşulları</h1>
+  <p class="mut">Sürüm ${esc(LEGAL_V)} · Son güncelleme: 19 Ekim 2026</p>
+  <p>Bu metin iki bölümden oluşur: <a href="#/kvkk">1. Aydınlatma metni</a> (6698 sayılı Kişisel Verilerin Korunması Kanunu, “KVKK”, madde 10) ve <a href="#/kvkk/kosullar">2. Yükleme koşulları ve yükleyen beyanı</a>.</p>
+
+  <h2 id="aydinlatma">1. Aydınlatma metni</h2>
+  <h3>Taraflar ve roller</h3>
+  <p>${esc(BRAND)}, düğün, nişan gibi etkinliklerde misafirlerin QR kod aracılığıyla fotoğraf, video, ses kaydı ve not yükleyebildiği bir anı albümü hizmetidir.</p>
+  <ul>
+    <li><b>Albüm sahibi (çift):</b> albümü oluşturur; yüklenen içeriklerin hangi amaçla toplanıp nasıl kullanılacağını belirler. Yüklenen içerikler bakımından <b>veri sorumlusu</b> albüm sahibidir.</li>
+    <li><b>Yükleyen (misafir):</b> yüklediği içeriğin hukuka uygunluğundan ve içerikte yer alan kişilerin haklarından kendisi sorumludur (bkz. 2. bölüm).</li>
+    <li><b>İşletmeci${op ? ' (' + op + ')' : ''}:</b> yalnızca teknik altyapıyı (barındırma, depolama, QR ve bağlantı üretimi) sağlayan aracı hizmet sağlayıcıdır. Yüklenen içerikleri kendi amacı için kullanmaz, önceden incelemez ve yayımlamaz; yalnızca albüm sahibinin talimatı doğrultusunda barındırır. Albüm sahibine ait hesap, sipariş ve ödeme bilgilerini hizmetin sunulması için işler. İletişim: ${mail}.</li>
+  </ul>
+
+  <h3>İşlenen kişisel veriler</h3>
+  <ul>
+    <li><b>Misafir (yükleyen):</b> yazdığınız ad ve not, isteğe bağlı e-posta adresi, yüklediğiniz fotoğraf, video ve ses kayıtları (bunlarda yer alan yüz görüntüsü ve ses dahil), yükleme zamanı, anonim oturum kimliği ve onay kaydı. Sunucu altyapısı güvenlik amacıyla IP adresi ve cihaz bilgisi gibi teknik kayıtları tutabilir.</li>
+    <li><b>Albüm sahibi:</b> ad-soyad, e-posta, telefon, sipariş ve ödeme tutarı. Kart bilgileriniz işletmeci tarafından görülmez ve saklanmaz; ödeme, ödeme kuruluşunun sayfasında alınır.</li>
+  </ul>
+
+  <h3>Amaçlar ve hukuki sebepler</h3>
+  <ul>
+    <li>Yüklediğiniz içeriğin albüm sahibine ulaştırılması, albümde gösterilmesi, indirilmesi ve (isteniyorsa) baskı siparişi verilmesi: <b>açık rızanız</b> ve hizmetin sunulması.</li>
+    <li>E-posta adresinize albüm bağlantısı ve teşekkür iletisi gönderilmesi: <b>açık rızanız</b>.</li>
+    <li>Albüm sahibiyle sözleşmenin kurulması ve ifası, faturalama, destek: <b>sözleşmenin ifası</b>, <b>hukuki yükümlülük</b>.</li>
+    <li>Hizmetin güvenliği, kötüye kullanımın ve hukuka aykırı içeriğin önlenmesi: <b>meşru menfaat</b>.</li>
+  </ul>
+
+  <h3>Yapay zekâ ve yüz özellikleri</h3>
+  <ul>
+    <li><b>“Beni bul”:</b> çektiğiniz selfie yalnızca kendi telefonunuzda işlenir; sunucuya yüklenmez ve saklanmaz.</li>
+    <li><b>“Kişiler” (yalnızca Premium, albüm sahibi için):</b> yüzler albüm sahibinin cihazında gruplanır; yüz tanıma şablonu saklanmaz, yalnızca grup numarası kaydedilir.</li>
+    <li><b>Fotoğraf analizi (yalnızca Premium):</b> küçük resimler, etiket ve yüz algılama için Google Cloud Vision hizmetinde işlenir. Bu işlem kimlik tanımaz; yalnızca etiket, yüz sayısı, bulanıklık ve benzeri puanlar saklanır.</li>
+    <li>Bu özellikler yalnızca ilgili pakette ve albüm sahibinin kullanımına bağlıdır; biyometrik veri niteliği taşıyabileceğinden açık rızanız dışında kimlik belirlemek için kullanılmaz.</li>
+  </ul>
+
+  <h3>Saklama yeri, yurt dışı aktarım ve süre</h3>
+  <p>Veriler Google Cloud / Firebase altyapısında Almanya (Frankfurt) bölgesinde saklanır; bu nedenle <b>yurt dışına aktarım</b> söz konusudur ve yükleme sırasında bu konuda onayınız alınır. İçerikler albüm paketinin süresi bitiminden sonra en geç 30 gün içinde silinir. Albüm sahibi bir içeriği sildiğinde içerik hemen yayından kalkar; veritabanı yedekleri (ad, not, e-posta gibi kayıtlar) 30 gün saklanır ve sonra silinir.</p>
+
+  <h3>Kimlerle paylaşılır?</h3>
+  <p>İçerikleriniz albüm sahibi ve onun yetki verdiği kişilerle; altyapı sağlayıcıyla (Google), ödeme kuruluşuyla (yalnızca albüm sahibinin ödemesi için) ve baskı siparişi verilirse baskı/kargo hizmeti sağlayıcısıyla paylaşılır. Verileriniz reklam amacıyla satılmaz veya paylaşılmaz. Yetkili makamların hukuka uygun talebi halinde kanunun gerektirdiği ölçüde paylaşılabilir.</p>
+
+  <h3>Haklarınız (KVKK madde 11)</h3>
+  <p>Kişisel verilerinizin işlenip işlenmediğini öğrenme, bilgi talep etme, işlenme amacını ve amacına uygun kullanılıp kullanılmadığını öğrenme, aktarıldığı kişileri bilme, eksik veya yanlış işlenmişse düzeltilmesini, silinmesini veya yok edilmesini isteme, bunların aktarıldığı üçüncü kişilere bildirilmesini isteme, işlemeye itiraz etme ve kanuna aykırı işleme nedeniyle zarara uğramanız halinde zararın giderilmesini talep etme haklarına sahipsiniz. İçerik silme taleplerinizi önce albüm sahibine, ulaşamazsanız ${mail} adresine iletebilirsiniz. Başvurular kimlik doğrulaması sonrası en geç 30 gün içinde yanıtlanır. Ayrıca Kişisel Verileri Koruma Kurulu’na şikâyet hakkınız saklıdır.</p>
+  <p>Onayınızı, yükleme sırasında verdiğiniz sürüm numarası ve tarihle birlikte kayıt altına alırız; onayınızı istediğiniz zaman geri çekebilir, yüklediğiniz içeriğin kaldırılmasını isteyebilirsiniz.</p>
+
+  <h2 id="kosullar">2. Yükleme koşulları ve yükleyen beyanı</h2>
+  <p>Bu albüme içerik yükleyerek aşağıdakileri kabul ve beyan etmiş olursunuz:</p>
+  <ol>
+    <li>Yüklediğiniz fotoğraf, video, ses ve notların <b>size ait olduğunu</b> ya da bunları yükleme ve paylaşma hakkınız bulunduğunu (telif ve diğer fikri haklar dahil).</li>
+    <li>Görüntülerde veya seslerde yer alan kişilerin, <b>gerektiği ölçüde izinlerini aldığınızı</b>; kimsenin özel hayatının gizliliğini, kişilik haklarını veya kişisel verilerini hukuka aykırı biçimde ihlal etmediğinizi.</li>
+    <li>18 yaşından küçüklerin görüntülerini yalnızca <b>yasal temsilcisinin (veli/vasi) izniyle</b> yüklediğinizi; kendiniz 18 yaşından küçükseniz veli veya vasi izniyle yüklediğinizi.</li>
+    <li>İçeriğin <b>hukuka uygun</b> olduğunu; şiddet, nefret söylemi, çıplaklık veya cinsel içerik, çocukların istismarı, taciz ve tehdit, kişilerin mahremiyetini ihlal eden, aldatıcı, telif hakkını ihlal eden, zararlı yazılım içeren veya reklam/spam niteliğindeki içerik yüklemeyeceğinizi.</li>
+    <li>Yüklediğiniz içerikten <b>sizin sorumlu olduğunuzu</b>; beyanlarınıza aykırı içerik yüklenmesi nedeniyle albüm sahibinin, işletmecinin veya üçüncü kişilerin uğrayacağı zararlardan, <b>kanunun izin verdiği ölçüde</b>, sizin sorumlu olacağınızı.</li>
+  </ol>
+  <h3>İşletmecinin ve albüm sahibinin rolü</h3>
+  <ul>
+    <li>İşletmeci yüklenen içerikleri önceden denetlemez ve içeriğin doğruluğundan, hukuka uygunluğundan ya da üçüncü kişi haklarına uygunluğundan, kanunun izin verdiği ölçüde, sorumlu değildir. Hukuka aykırı olduğu bildirilen içerikler incelenir; gerekirse kaldırılır, erişime kapatılır ve tekrarlayan ihlallerde yükleme engellenir.</li>
+    <li>Albüm sahibi (çift) yüklenen içerikleri onaya alabilir, gizleyebilir, silebilir ve indirebilir. İçerikleri yalnızca anı albümü amacıyla kullanmayı, üçüncü kişilerle veya herkese açık ortamlarda paylaşırken görüntülerdeki kişilerin haklarını gözetmeyi kabul eder.</li>
+    <li>İhlal ve içerik bildirimleri için: ${mail}.</li>
+  </ul>
   <p><a href="javascript:history.back()">Geri dön</a></p></div>`;
+  if (sec === 'kosullar') { const el = document.getElementById('kosullar'); if (el) el.scrollIntoView(); }
 }
 
 if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
