@@ -1048,8 +1048,8 @@ async function album(wid, key) {
       </label>
       <label class="f">Çerçeve şablonu
         <div class="tpl-grid" id="tplg">
-          <label class="tpl-opt"><input type="radio" name="tpl" value="minimal" ${(!th.frame || th.frame === 'minimal') ? 'checked' : ''}><b>Minimal</b><span>Sade, yalnızca QR</span></label>
-          <label class="tpl-opt"><input type="radio" name="tpl" value="classic" ${th.frame === 'classic' ? 'checked' : ''}><b>Klasik</b><span>İsim + tarih</span></label>
+          <label class="tpl-opt"><input type="radio" name="tpl" value="minimal" ${th.frame === 'minimal' ? 'checked' : ''}><b>Minimal</b><span>Sade, yalnızca QR</span></label>
+          <label class="tpl-opt"><input type="radio" name="tpl" value="classic" ${(!th.frame || th.frame === 'classic') ? 'checked' : ''}><b>Klasik</b><span>İsim + tarih</span></label>
           <label class="tpl-opt"><input type="radio" name="tpl" value="elegant" ${th.frame === 'elegant' ? 'checked' : ''}><b>Zarif</b><span>Çift çerçeve</span></label>
         </div>
       </label>
