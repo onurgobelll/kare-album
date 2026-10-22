@@ -152,6 +152,12 @@ progress::-moz-progress-bar{background:var(--ac);border-radius:99px}
 .qr-prev-card img{width:100px;height:100px;margin:5px 0}
 .qr-prev-card em{font-style:normal;font-size:.62rem;color:#8c8072}
 .qr-prev-card.tpl-minimal b,.qr-prev-card.tpl-minimal small{display:none}
+.qr-prev-card.has-photo{width:200px;min-height:270px;background-size:cover;background-position:center;border-color:transparent;justify-content:flex-end;position:relative;color:#fff}
+.qr-prev-card.has-photo[data-pos=top]{justify-content:flex-start}.qr-prev-card.has-photo[data-pos=center]{justify-content:center}
+.qr-prev-card.has-photo b,.qr-prev-card.has-photo small,.qr-prev-card.has-photo em{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.6)}
+.qr-prev-card.has-photo.tpl-minimal b,.qr-prev-card.has-photo.tpl-minimal small{display:block}
+.qr-prev-card.has-photo img{background:#fff;padding:8px;border-radius:10px;width:100px;height:100px}
+.qr-prev-card.has-photo[data-sz=s] img{width:76px;height:76px}.qr-prev-card.has-photo[data-sz=l] img{width:128px;height:128px}
 .qr-prev-card.tpl-elegant{box-shadow:0 0 0 1px var(--qc),0 0 0 6px #fff,0 0 0 7px var(--qc)}
 @keyframes mfade{from{opacity:0}to{opacity:1}}
 @keyframes mpop{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:none}}
@@ -812,7 +818,7 @@ async function album(wid, key) {
       ${pk.wall ? `<a class="btn sm" href="#/wall/${wid}/${key || ''}" target="_blank">Canlı duvar</a>` : ''}
       <button class="btn sm" id="bSet">Ayarlar</button></div></details></div></div>
     <div class="row" style="margin:10px 0"><input id="srch" placeholder="Ara: isim, not, pasta, dans, gelin…" style="max-width:320px">
-      <span id="selbar" class="row" hidden><button class="btn sm" data-a="approved">Onayla</button><button class="btn sm" data-a="hidden">Gizle</button><button class="btn sm" data-a="fav">★ Favori</button><button class="btn sm bad" data-a="del">Sil</button></span></div>
+      <span id="selbar" class="row" hidden><b id="selCount" class="mut" style="font-size:.85rem">Seçim yapın</b><button class="btn sm" data-a="all">Tümünü seç</button><button class="btn sm" data-a="none">Temizle</button><button class="btn sm pri" data-a="dl">İndir</button><button class="btn sm" data-a="approved">Onayla</button><button class="btn sm" data-a="hidden">Gizle</button><button class="btn sm" data-a="fav">★ Favori</button><button class="btn sm bad" data-a="del">Sil</button></span></div>
     <div class="tabs" id="tabs" role="tablist"></div><div id="prog" class="mut" aria-live="polite"></div><div id="extra"></div>
     <div class="grid" id="grid"></div></div>`;
 
@@ -864,11 +870,16 @@ async function album(wid, key) {
       : `<div class="empty"><em>${icoCamera(32)}</em><p class="mut" style="margin:0">Bu görünümde dosya yok.<br>Misafirler QR kodu okutunca burada belirir.</p></div>`;
     lazy(g);
     g.querySelectorAll('.ph').forEach(b => b.onclick = () => {
-      if (selMode) { sel.has(b.dataset.id) ? sel.delete(b.dataset.id) : sel.add(b.dataset.id); b.classList.toggle('sel'); }
+      if (selMode) { sel.has(b.dataset.id) ? sel.delete(b.dataset.id) : sel.add(b.dataset.id); b.classList.toggle('sel'); updSel(); }
       else open(b.dataset.id, l);
     });
-    $('#selbar').hidden = !selMode;
+    $('#selbar').hidden = !selMode; updSel();
   };
+  function updSel() {
+    const c = $('#selCount'); if (c) c.textContent = sel.size ? sel.size + ' seçili' : 'Seçim yapın';
+    const d = $('#selbar [data-a=dl]'); if (d) d.textContent = sel.size ? `İndir (${sel.size})` : 'İndir';
+    const z = $('#bZip'); if (z) z.textContent = selMode && sel.size ? `Seçilenleri indir (${sel.size})` : 'ZIP indir';
+  }
   cleanup.push(db.collection(`weddings/${wid}/photos`).orderBy('createdAt', 'desc').onSnapshot(s => { photos = s.docs.map(d => ({id: d.id, ...d.data()})); draw(); }));
   cleanup.push(db.doc('weddings/' + wid).onSnapshot(s => { w = s.data() || w; draw(); }));
   $('#srch').oninput = e => { q = e.target.value.trim().toLowerCase(); draw(); };
@@ -887,7 +898,20 @@ async function album(wid, key) {
     }
     toast('Tamam');
   };
-  $('#selbar').querySelectorAll('button').forEach(b => b.onclick = () => { const it = photos.filter(p => sel.has(p.id)); if (!it.length) return toast('Önce dosya seçin'); act(b.dataset.a, it).then(() => { sel.clear(); draw(); }); });
+  $('#selbar').querySelectorAll('button').forEach(b => b.onclick = () => {
+    const a = b.dataset.a;
+    if (a === 'all') { list().filter(p => p.status !== 'hidden' || filter === 'hidden').forEach(p => sel.add(p.id)); return draw(); }
+    if (a === 'none') { sel.clear(); return draw(); }
+    const it = photos.filter(p => sel.has(p.id)); if (!it.length) return toast('Önce dosya seçin');
+    if (a === 'dl') return downloadSel(it); // seçim korunur, art arda indirilebilir
+    act(a, it).then(() => { sel.clear(); draw(); });
+  });
+  // seçilenleri indir: tek dosya doğrudan, birden çok dosya ZIP olarak
+  async function downloadSel(it) {
+    if (it.length === 1) return dl(it[0]);
+    if (!pk.zip) return toast('Toplu indirme bu pakette kapalı, dosyaları tek tek indirebilirsiniz');
+    await zipPhotos(it, w.title, t => $('#prog').textContent = t); toast('ZIP hazır');
+  }
 
   const dl = async (p, name) => {
     try {
@@ -1065,8 +1089,13 @@ async function album(wid, key) {
           ${th.qrBg ? `<img data-bgp="${esc(th.qrBg)}" style="width:56px;height:56px;object-fit:cover;border-radius:6px;background:var(--line)" alt="">` : ''}
           <label class="btn sm">${th.qrBg ? 'Değiştir' : 'Tasarım seç'}<input hidden type="file" id="qbf" accept="image/*"></label>
           ${th.qrBg ? '<button class="btn sm bad" id="qbx" type="button">Kaldır</button>' : ''}
-        </div><em id="qbst" class="mut" style="font-style:normal;font-size:.75rem">PNG/JPG, maks. 15 MB. QR kod üzerine otomatik yerleştirilir.</em>
+        </div><em id="qbst" class="mut" style="font-style:normal;font-size:.75rem">PNG/JPG, maks. 15 MB. Fotoğraf kartın arka planı olur, QR üstüne yerleşir.</em>
       </label>
+      <div class="row" style="gap:10px;align-items:flex-end">
+        <label class="f" style="flex:1">QR konumu<select id="qpos"><option value="top" ${th.qrPos === 'top' ? 'selected' : ''}>Üstte</option><option value="center" ${th.qrPos === 'center' ? 'selected' : ''}>Ortada</option><option value="bottom" ${(!th.qrPos || th.qrPos === 'bottom') ? 'selected' : ''}>Altta</option></select></label>
+        <label class="f" style="flex:1">QR boyutu<select id="qsz"><option value="s" ${th.qrSize === 's' ? 'selected' : ''}>Küçük</option><option value="m" ${(!th.qrSize || th.qrSize === 'm') ? 'selected' : ''}>Orta</option><option value="l" ${th.qrSize === 'l' ? 'selected' : ''}>Büyük</option></select></label>
+      </div>
+      <button class="btn sm" id="qpng" type="button">Görsel olarak indir (PNG)</button>
 
       <div ${pk.wall ? '' : 'hidden'}><h3>Canlı duvar</h3>
         <label class="f">Düzen<select id="wm"><option value="stream" ${th.wallMode !== 'bg' ? 'selected' : ''}>Akış: kareler ekranı tamamen kaplar</option><option value="bg" ${th.wallMode === 'bg' ? 'selected' : ''}>Sabit arka plan: seçtiğiniz fotoğraf arkada kalır, kareler çerçeve içinde akar</option></select></label>
@@ -1102,7 +1131,13 @@ async function album(wid, key) {
       m.querySelector('#qpCard').style.setProperty('--qc', c);
       m.querySelector('#qpCard').className = 'qr-prev-card tpl-' + t;
       m.querySelector('#qpD').textContent = w.eventDate ? fmtDate(w.eventDate) : '';
+      const card = m.querySelector('#qpCard'), pos = m.querySelector('#qpos').value, sz = m.querySelector('#qsz').value;
+      card.dataset.pos = pos; card.dataset.sz = sz;
+      if (qBgUrl) { card.classList.add('has-photo'); card.style.backgroundImage = `url(${qBgUrl})`; } else { card.classList.remove('has-photo'); card.style.backgroundImage = ''; }
     };
+    let qBgUrl = null; if (th.qrBg) getUrl(th.qrBg).then(u => { qBgUrl = u; updatePrev(); }).catch(() => {});
+    m.querySelector('#qpos').onchange = m.querySelector('#qsz').onchange = () => updatePrev();
+    m.querySelector('#qpng').onclick = () => downloadQrCard(w, wid, {color: curColor(), frame: curTpl(), pos: m.querySelector('#qpos').value, size: m.querySelector('#qsz').value});
     m.querySelectorAll('#swr .swatch').forEach(b => b.onclick = () => {
       m.querySelectorAll('#swr .swatch').forEach(x => x.classList.remove('on')); b.classList.add('on');
       m.querySelector('#s3').value = b.dataset.c; updatePrev();
@@ -1165,7 +1200,7 @@ async function album(wid, key) {
       const g = s => m.querySelector(s), has = g('#i1').value || g('#i2').value || g('#i3').value || g('#i4').value || g('#i6').value || g('#i7').value;
       const frame = document.querySelector('input[name=tpl]:checked').value;
       await db.doc('weddings/' + wid).update({
-        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value, 'theme.frame': frame, 'theme.wallMode': g('#wm').value, 'theme.wallVideos': g('#wv').value,
+        title: g('#s1').value.trim() || w.title, welcome: g('#s2').value.trim(), 'theme.color': g('#s3').value, 'theme.frame': frame, 'theme.qrPos': g('#qpos').value, 'theme.qrSize': g('#qsz').value, 'theme.wallMode': g('#wm').value, 'theme.wallVideos': g('#wv').value,
         uploadOpen: g('#o1').checked, moderation: g('#o2').checked, guestGallery: g('#o3').checked, originals: g('#o4').checked,
         invite: has ? {date: g('#i1').value, place: g('#i2').value, map: g('#i3').value, text: g('#i4').value, story: g('#i6').value, schedule: g('#i7').value, template: g('#i5').value} : null
       });
@@ -1292,11 +1327,57 @@ function printInvite(w, wid) {
   win.document.close();
 }
 
+// Çiftin fotoğrafının üstüne QR yerleştirilmiş paylaşılabilir/yazdırılabilir görsel (PNG, 1200x1600)
+async function renderQrCard(w, wid, o = {}) {
+  const th = w.theme || {}, color = o.color || th.color || '#9a2e2a', frame = o.frame || th.frame || 'classic', pos = o.pos || th.qrPos || 'bottom', size = o.size || th.qrSize || 'm';
+  const W = 1200, H = 1600, c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  try { await document.fonts.load('600 80px Fraunces'); } catch (e) {}
+  const rr = (X, Y, w2, h2, r) => { x.beginPath(); x.moveTo(X + r, Y); x.arcTo(X + w2, Y, X + w2, Y + h2, r); x.arcTo(X + w2, Y + h2, X, Y + h2, r); x.arcTo(X, Y + h2, X, Y, r); x.arcTo(X, Y, X + w2, Y, r); x.closePath(); };
+  const load = src => new Promise((res, rej) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res(im); im.onerror = rej; im.src = src; });
+  let photo = null; const bgUrl = o.bgUrl !== undefined ? o.bgUrl : (th.qrBg ? await getUrl(th.qrBg).catch(() => null) : null);
+  if (bgUrl) photo = await load(bgUrl).catch(() => null);
+  if (photo) {
+    const k = Math.max(W / photo.naturalWidth, H / photo.naturalHeight), dw = photo.naturalWidth * k, dh = photo.naturalHeight * k; x.drawImage(photo, (W - dw) / 2, (H - dh) / 2, dw, dh);
+    const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(0,0,0,.42)'); g.addColorStop(.32, 'rgba(0,0,0,.05)'); g.addColorStop(.68, 'rgba(0,0,0,.05)'); g.addColorStop(1, 'rgba(0,0,0,.5)'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  } else {
+    x.fillStyle = '#fffaf3'; x.fillRect(0, 0, W, H); x.strokeStyle = color; x.lineWidth = 8; rr(40, 40, W - 80, H - 80, 48); x.stroke();
+    if (frame === 'elegant') { x.lineWidth = 3; rr(66, 66, W - 132, H - 132, 36); x.stroke(); }
+  }
+  const ink = photo ? '#ffffff' : '#241e1b', soft = photo ? 'rgba(255,255,255,.85)' : '#6b6055';
+  const shadow = on => { x.shadowColor = on && photo ? 'rgba(0,0,0,.55)' : 'transparent'; x.shadowBlur = on && photo ? 18 : 0; x.shadowOffsetY = on && photo ? 3 : 0; };
+  x.textAlign = 'center';
+  const showName = !(frame === 'minimal' && !photo);
+  // QR kutusu
+  const box = {s: 400, m: 540, l: 700}[size] || 540, pad = 34, blockH = box + 50 + 96;
+  const by = pos === 'top' ? 300 : pos === 'center' ? Math.round((H - blockH) / 2) + 40 : H - blockH - 150, bx = (W - box) / 2;
+  shadow(false); x.fillStyle = '#fff'; if (photo) { x.shadowColor = 'rgba(0,0,0,.35)'; x.shadowBlur = 36; }
+  rr(bx, by, box, box, 40); x.fill(); x.shadowColor = 'transparent'; x.shadowBlur = 0;
+  x.strokeStyle = color; x.lineWidth = frame === 'minimal' ? 0 : 5; if (frame !== 'minimal') { rr(bx + 10, by + 10, box - 20, box - 20, 32); x.stroke(); }
+  if (frame === 'elegant') { x.lineWidth = 2; rr(bx + 20, by + 20, box - 40, box - 40, 26); x.stroke(); }
+  const qimg = await load(qrSvgUrl(guestLink(w, wid), color, 12)); x.drawImage(qimg, bx + pad, by + pad, box - 2 * pad, box - 2 * pad);
+  // yazılar
+  shadow(true); x.fillStyle = soft; x.font = '400 40px "Work Sans", system-ui, sans-serif';
+  x.fillText('Telefonunuzun kamerasını okutun,', W / 2, by + box + 78); x.fillText('fotoğraf ve videolarınızı bize gönderin.', W / 2, by + box + 128);
+  if (showName) {
+    const ny = pos === 'top' ? H - 250 : 190;
+    x.fillStyle = ink; x.font = '600 96px Fraunces, Georgia, serif'; let fs = 96; while (x.measureText(w.title).width > W - 160 && fs > 48) { fs -= 4; x.font = `600 ${fs}px Fraunces, Georgia, serif`; }
+    x.fillText(w.title, W / 2, ny);
+    const d = w.eventDate ? fmtDate(w.eventDate) : ''; if (d) { x.fillStyle = soft; x.font = '400 44px "Work Sans", system-ui, sans-serif'; x.fillText(d, W / 2, ny + 66); }
+    x.fillStyle = color; x.shadowColor = 'transparent'; x.fillRect(W / 2 - 40, ny + (d ? 100 : 36), 80, 6);
+  }
+  shadow(false);
+  return await new Promise((res, rej) => c.toBlob(b => b ? res(b) : rej(new Error('toBlob')), 'image/png'));
+}
+async function downloadQrCard(w, wid, o) {
+  try { const b = await renderQrCard(w, wid, o); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${slug(w.title)}-qr.png`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); toast('QR görseli indirildi'); }
+  catch (e) { console.error(e); toast('Görsel hazırlanamadı, tekrar deneyin'); }
+}
 async function printKit(w, wid) {
   const win = window.open('', '_blank'); // popup engellenmesin diye await'ten önce, hemen açılır
   const th = w.theme || {}, c = th.color || '#9a2e2a', frame = th.frame || 'classic';
   const g = qrSvgUrl(guestLink(w, wid), c, 12), name = esc(w.title);
   const bgUrl = th.qrBg ? await getUrl(th.qrBg).catch(() => null) : null;
+  const qpos = th.qrPos || 'bottom', qjc = qpos === 'top' ? 'flex-start' : qpos === 'center' ? 'center' : 'flex-end', qmm = {s: 44, m: 58, l: 76}[th.qrSize] || 58;
   const nameBlock = frame === 'minimal' && !bgUrl ? '' : `<h1>${name}</h1><div class="rule"></div>`;
   const nameBlockSm = frame === 'minimal' && !bgUrl ? '' : `<h2>${name}</h2>`;
   const frameExtra = frame === 'elegant' && !bgUrl ? ' elegant' : '';
@@ -1311,7 +1392,8 @@ async function printKit(w, wid) {
   .rule{width:46px;height:3px;background:${c};border-radius:2px;margin:5mm auto 0}
   .sign{height:130mm;border:1.5px solid ${c};border-radius:6mm;text-align:center;padding:14mm 12mm;margin-bottom:8mm;page-break-inside:avoid;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6mm;position:relative;overflow:hidden}
   .sign.elegant{box-shadow:0 0 0 1.5px ${c},0 0 0 7px #fff,0 0 0 8.5px ${c};border:none}
-  .sign.bgphoto{background-size:cover;background-position:center;justify-content:flex-end;gap:4mm;padding-bottom:16mm}
+  .sign.bgphoto{background-size:cover;background-position:center;justify-content:${qjc};gap:4mm;padding-top:16mm;padding-bottom:16mm}
+  .sign.bgphoto .frame img{width:${qmm}mm;height:${qmm}mm}
   .sign.bgphoto .frame{background:#fff}
   .sign.bgphoto h1,.sign.bgphoto p{background:rgba(255,255,255,.88);padding:2mm 6mm;border-radius:3mm}
   .sign h1{font-size:30pt}.sign .frame img{width:58mm;height:58mm}.sign p{font-size:14pt;color:#5c5349;margin:0}
@@ -1392,12 +1474,13 @@ async function admin() {
         ${pk.wall ? `<a class="tile" href="${link('wall', id, key)}" target="_blank" rel="noopener"><em>${icoScreen(28)}</em><span>Duvar</span><b>canlı ekran</b></a>` : ''}
       </div>
       <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift QR</figure></div>
-      <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="png">QR görseli (PNG)</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
       <details class="more"><summary>Diğer işlemler</summary><div class="row">
       <button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">+2 GB ekle</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm" data-a="demo">Örnek albüm yap</button><button class="btn sm bad" data-a="del">Sil</button></div></details></div>`; }).join('');
     $('#ls').querySelectorAll('.card').forEach(c => {
       const it = items.find(x => x.id === c.dataset.id);
       c.querySelector('[data-a=print]').onclick = () => printKit(it.w, it.id);
+      c.querySelector('[data-a=png]').onclick = () => downloadQrCard(it.w, it.id);
       c.querySelector('[data-a=copy]').onclick = () => navigator.clipboard.writeText(link('a', it.id, it.key)).then(() => toast('Kopyalandı'));
       c.querySelector('[data-a=wa]').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(`${it.w.title} albümünüz hazır: ${link('a', it.id, it.key)}\nMisafir yükleme bağlantısı: ${guestLink(it.w, it.id)}`), '_blank');
       c.querySelector('[data-a=ord]').onclick = () => showOrders(it.id, it.w);
@@ -1577,9 +1660,10 @@ async function done(wid, key) {
   app.innerHTML = `<div class="wrap"><div class="hero"><h1>Ödemeniz alındı</h1><p class="mut">${esc(w.title)} albümünüz hazır. Bu bağlantıları saklayın; e-postanıza da gönderdik.</p></div>
   <div class="card"><h2>Çift albümü (yalnızca siz)</h2><p class="links"><a href="${la}">${la}</a></p></div>
   <div class="card"><h2>Misafir QR kodu</h2><div class="qrbox"><figure><img src="${qrUrl(lu, 6)}" alt="" style="width:180px;height:180px"></figure></div><p class="links"><a href="${lu}">${lu}</a></p>
-  <button class="btn" id="pk">QR kartlarını yazdır</button></div>
+  <button class="btn" id="pk">QR kartlarını yazdır</button> <button class="btn" id="pkPng">QR görseli (PNG)</button></div>
   ${WA_NUMBER.includes('X') ? '' : `<p><a class="btn" href="https://wa.me/${WA_NUMBER}" target="_blank">WhatsApp destek</a></p>`}</div>`;
   $('#pk').onclick = () => printKit(w, wid);
+  $('#pkPng').onclick = () => downloadQrCard(w, wid);
 }
 
 function kvkk(sec) {
