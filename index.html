@@ -1667,7 +1667,7 @@ function buy(ref) {
   <div class="row"><label class="f sp">Ad<input id="b2" autocomplete="given-name"></label><label class="f sp">Soyad<input id="b3" autocomplete="family-name"></label></div>
   <label class="f">E-posta (bağlantılar buraya da gelir)<input id="b4" type="email" autocomplete="email"></label>
   <label class="f">Telefon<input id="b5" type="tel" autocomplete="tel" placeholder="+905xxxxxxxxx"></label>
-  <p class="err" id="be"></p><button class="btn pri" id="bp">Ödemeye geç</button></div>
+  <p class="err" id="be"></p><button class="btn pri" id="bp">${PAY_LIVE ? 'Ödemeye geç' : 'Siparişi e-postayla gönder'}</button>${PAY_LIVE ? '' : '<p class="mut" style="font-size:.78rem;margin:10px 0 0">Online ödeme yakında. Şimdilik siparişinizi e-postayla iletin; size ödeme bilgilerini gönderelim, ödemeniz onaylanınca albümünüz hemen kurulur.</p>'}</div>
   <p class="mut" style="font-size:.8rem"><a href="#/kvkk">Aydınlatma metni</a> · <a href="#/admin">Satıcı girişi</a></p></div>`;
   // taslak: tasarım seçimi + form alanları localStorage'da tutulur, önizleme canlı güncellenir
   const dr = (() => { try { return JSON.parse(localStorage.kdraft || '{}'); } catch (e) { return {}; } })();
@@ -1707,7 +1707,9 @@ function buy(ref) {
     const v = id => $(id).value.trim(), body = {color: dColor, frame: dFrame(), qrBgMode: dMode, qrPreset: dPre, qrPos: $('#bpos').value, qrSize: $('#bsz').value, pkg: document.querySelector('input[name=pk]:checked').value, title: v('#b1'), name: v('#b2'), surname: v('#b3'), email: v('#b4'), phone: v('#b5'), date: v('#b6'), ref: localStorage.ref || ''};
     logEv('checkout');
     if (!body.title || !body.email) { $('#be').textContent = 'Çift adı ve e-posta gerekli.'; return; }
-    if (!PAY_LIVE) { $('#be').textContent = 'Online ödeme henüz aktif değil. Satın almak için bizimle iletişime geçin.'; return; }
+    if (!PAY_LIVE) { // online ödeme açılana kadar: sipariş taslağı e-postayla iletilir (elden/IBAN/POS ile ödeme alınır)
+      $('#be').innerHTML = `E-posta uygulamanız açılıyor; göndermeniz yeterli. Açılmazsa bilgilerinizi <b>${esc(COMPANY.email)}</b> adresine yazın.`;
+      location.href = $('#bmail').href; return; }
     $('#bp').disabled = true; $('#be').textContent = '';
     try {
       const r = await fetch(FN_URL + '/createCheckout', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
