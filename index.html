@@ -1464,7 +1464,7 @@ async function admin() {
   }
   const myRole = ((await db.doc('admins/' + u.uid).get().catch(() => null)) || {data: () => null}).data()?.role;
   if (!myRole) { app.innerHTML = `<div class="wrap"><h1>Yetki yok</h1><p class="mut">Bu hesaba panel yetkisi verilmemiş. Yöneticiye şu kimliği iletin:</p><p class="card" style="word-break:break-all">${esc(u.uid)}</p><button class="btn" id="lo2">Çıkış</button></div>`; $('#lo2').onclick = async () => { await auth.signOut(); route(); }; return; }
-  app.innerHTML = `<div class="wrap wide"><div class="row"><h1 style="margin:0">Düğünler</h1><span class="sp"></span><button class="btn pri" id="nw">Yeni düğün</button><button class="btn" id="lo">Çıkış</button></div><div id="pt" style="margin-top:16px"></div><div id="ls" style="margin-top:16px"></div></div>`;
+  app.innerHTML = `<div class="wrap wide"><div class="row"><h1 style="margin:0">Düğünler</h1><span class="sp"></span><button class="btn pri" id="nw">Yeni düğün</button><button class="btn" id="lo">Çıkış</button></div><div id="pt" style="margin-top:16px"></div><div id="aos" style="margin-top:16px"></div><div id="ls" style="margin-top:16px"></div></div>`;
   $('#lo').onclick = async () => { await auth.signOut(); route(); };
   const isAdm = myRole === 'admin';
   db.doc('partners/' + u.uid).get().then(p => { if (p.exists) partnerCard(u, p.data()); }).catch(() => {});
@@ -1474,6 +1474,21 @@ async function admin() {
     if (!isAdm || !amount) return;
     try { await db.collection('sales').add({wid, title, pkg, amount, partnerUid: null, pct: 0, commission: 0, paid: true, method, at: TS()}); }
     catch (e) { console.warn('satış kaydı yazılamadı', e); toast('Düğün açıldı ama satış kaydı yazılamadı (kurallar güncel mi?)'); }
+  }
+  // Tek yerden düğün kurar (yeni düğün formu ve gelen siparişler aynı kodu kullanır)
+  async function makeWedding(o) {
+    const slug = (o.slug || '').toLowerCase();
+    if (slug) { if (!/^[a-z0-9-]{3,30}$/.test(slug)) { toast('Kısa ad: 3-30 harf/rakam/tire'); return null; } if ((await db.doc('slugs/' + slug).get()).exists) { toast('Bu kısa ad alınmış'); return null; } }
+    const id = rid(22), key = rid(12), pk = PK[o.pkg] || PK.basic, d = o.date ? new Date(o.date) : new Date();
+    const exp = new Date(Math.max(d, Date.now())); exp.setMonth(exp.getMonth() + pk.months); // geçmiş tarihli düğün süresiz kısalmasın
+    const pay = o.pay || 'pending', pending = pay === 'pending';
+    await db.doc('weddings/' + id).set({title: o.title, pkg: PK[o.pkg] ? o.pkg : 'basic', quotaGB: pk.quotaGB, usedBytes: 0, ownerUid: u.uid, payStatus: pending ? 'pending' : 'paid',
+      uploadOpen: !pending, moderation: false, guestGallery: false, theme: o.theme || {color: '#9a2e2a'}, welcome: '', brand: o.brand ? {name: o.brand} : null, slug: slug || null, invite: null,
+      createdAt: TS(), eventDate: firebase.firestore.Timestamp.fromDate(d), expiresAt: firebase.firestore.Timestamp.fromDate(exp)});
+    await db.doc(`weddings/${id}/secret/k`).set({key, coupleEmail: o.email || null, phone: o.phone || null});
+    if (slug) await db.doc('slugs/' + slug).set({wid: id});
+    if (!pending) await recordSale(id, o.title, PK[o.pkg] ? o.pkg : 'basic', Number(o.amount) || 0, pay.split(':')[1]);
+    return {id, key, pending};
   }
   $('#nw').onclick = () => {
     const m = modal(`<h2>Yeni düğün</h2>
@@ -1489,25 +1504,53 @@ async function admin() {
     const a3 = m.querySelector('#a3'), a8 = m.querySelector('#a8'); const fillPrice = () => { a8.value = (PK[a3.value] || {}).price || ''; }; a3.onchange = fillPrice; fillPrice();
     m.querySelector('#cr').onclick = async () => {
       const g = s => m.querySelector(s).value.trim(), title = g('#a1'); if (!title) return m.querySelector('#a1').focus();
-      const slug = g('#a6').toLowerCase();
-      if (slug) { if (!/^[a-z0-9-]{3,30}$/.test(slug)) return toast('Kısa ad: 3-30 harf/rakam/tire'); if ((await db.doc('slugs/' + slug).get()).exists) return toast('Bu kısa ad alınmış'); }
-      const id = rid(22), key = rid(12), pk = PK[g('#a3')], d = g('#a2') ? new Date(g('#a2')) : new Date();
-      const exp = new Date(d); exp.setMonth(exp.getMonth() + pk.months);
-      const pay = g('#a7'), pending = pay === 'pending';
-      await db.doc('weddings/' + id).set({title, pkg: g('#a3'), quotaGB: pk.quotaGB, usedBytes: 0, ownerUid: u.uid, payStatus: pending ? 'pending' : 'paid',
-        uploadOpen: !pending, moderation: false, guestGallery: false, theme: {color: '#9a2e2a'}, welcome: '', brand: g('#a5') ? {name: g('#a5')} : null, slug: slug || null, invite: null,
-        createdAt: TS(), eventDate: firebase.firestore.Timestamp.fromDate(d), expiresAt: firebase.firestore.Timestamp.fromDate(exp)});
-      await db.doc(`weddings/${id}/secret/k`).set({key, coupleEmail: g('#a4') || null});
-      if (slug) await db.doc('slugs/' + slug).set({wid: id});
-      if (!pending) await recordSale(id, title, g('#a3'), Number(g('#a8')) || 0, pay.split(':')[1]);
-      m.remove(); toast(pending ? 'Taslak oluşturuldu, ödeme bekliyor' : 'Oluşturuldu'); load();
+      const r = await makeWedding({title, pkg: g('#a3'), date: g('#a2'), email: g('#a4'), brand: g('#a5'), slug: g('#a6'), pay: g('#a7'), amount: g('#a8')}); if (!r) return;
+      m.remove(); toast(r.pending ? 'Taslak oluşturuldu, ödeme bekliyor' : 'Oluşturuldu'); load();
     };
   };
+
+  // ---- Gelen siparişler: müşterinin satış sayfasından gönderdiği taslaklar ----
+  const waNum = p => { const d = String(p || '').replace(/\D/g, ''); return d.startsWith('00') ? d.slice(2) : d.length === 11 && d[0] === '0' ? '90' + d.slice(1) : d.length === 10 && d[0] === '5' ? '90' + d : d; };
+  const cleanDesign = d => { d = d || {}; return {color: /^#[0-9a-fA-F]{6}$/.test(d.color || '') ? d.color : '#9a2e2a', frame: ['minimal', 'classic', 'elegant'].includes(d.frame) ? d.frame : 'classic',
+    qrBgMode: d.qrBgMode === 'preset' ? 'preset' : 'plain', qrPreset: QR_PRESETS.some(p => p.id === d.qrPreset) ? d.qrPreset : 'blush', qrPos: ['top', 'center', 'bottom'].includes(d.qrPos) ? d.qrPos : 'bottom', qrSize: ['s', 'm', 'l'].includes(d.qrSize) ? d.qrSize : 'm'}; };
+  async function loadOrders() {
+    const box = $('#aos'); if (!isAdm || !box) return;
+    let snap; try { snap = await db.collection('albumOrders').where('status', '==', 'new').get(); } catch (e) { box.innerHTML = ''; return; }
+    const list = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a, b) => (b.createdAt ? b.createdAt.toMillis() : 0) - (a.createdAt ? a.createdAt.toMillis() : 0));
+    if (!list.length) { box.innerHTML = ''; return; }
+    const FR = {minimal: 'Minimal', classic: 'Klasik', elegant: 'Zarif'}, POS = {top: 'üstte', center: 'ortada', bottom: 'altta'}, SZ = {s: 'küçük', m: 'orta', l: 'büyük'}, CH = {mail: 'e-posta', wa: 'WhatsApp', draft: 'taslak e-postası'};
+    box.innerHTML = `<div class="card" style="border-color:var(--ac)"><div class="row"><h2 style="margin:0">Gelen siparişler</h2><span class="badge warn">${list.length} yeni</span></div>
+      <p class="mut" style="margin:6px 0 4px;font-size:.85rem">Müşterinin hazırladığı taslaklar. “Albümü oluştur” albümü, QR kodu ve bağlantıları müşterinin seçtiği tasarımla birlikte kurar.</p>` + list.map(o => {
+      const dz = cleanDesign(o.design), pk = PK[o.pkg] || PK.basic, ph = waNum(o.phone), when = o.createdAt ? o.createdAt.toDate().toLocaleString('tr-TR', {day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit'}) : '';
+      const bgTxt = dz.qrBgMode === 'preset' ? 'Renkli (' + ((QR_PRESETS.find(p => p.id === dz.qrPreset) || {}).n || '') + ')' : 'Düz';
+      return `<div class="oc" data-id="${esc(o.id)}" style="border-top:1px solid var(--line);margin-top:12px;padding-top:12px">
+        <div class="row"><b>${esc(o.title)}</b><span class="badge">${esc(pk.n)}</span><span class="sp"></span><span class="mut" style="font-size:.78rem">${esc(when)} · ${esc(CH[o.channel] || '')}</span></div>
+        <div class="mut" style="font-size:.85rem;margin-top:4px">${esc(((o.name || '') + ' ' + (o.surname || '')).trim() || '-')} · ${ph ? `<a href="https://wa.me/${ph}" target="_blank" rel="noopener">${esc(o.phone)}</a>` : 'telefon yok'} · <a href="mailto:${esc(o.email)}">${esc(o.email)}</a> · Düğün: ${esc(o.date || 'tarih yok')}</div>
+        <div class="row" style="gap:8px;margin:8px 0;align-items:center"><i style="width:16px;height:16px;border-radius:50%;background:${dz.color};display:inline-block"></i><span class="mut" style="font-size:.82rem">${FR[dz.frame]} çerçeve · ${esc(bgTxt)} · QR ${POS[dz.qrPos]}, ${SZ[dz.qrSize]}</span></div>
+        <div class="row" style="gap:8px;flex-wrap:wrap;align-items:flex-end">
+          <label class="f" style="flex:1;min-width:170px;margin:0">Ödeme<select class="op"><option value="pending">Ödeme bekliyor (taslak)</option><option value="paid:cash">Elden alındı</option><option value="paid:iban">IBAN / havale alındı</option><option value="paid:pos">POS / kart alındı</option></select></label>
+          <label class="f" style="width:110px;margin:0">Tutar (TL)<input class="oa" type="number" inputmode="decimal" min="0" value="${pk.price || ''}"></label>
+          <button class="btn pri sm oc-ok" type="button">Albümü oluştur</button><button class="btn sm oc-no" type="button">Yok say</button></div></div>`; }).join('') + '</div>';
+    box.querySelectorAll('.oc').forEach(c => {
+      const o = list.find(x => x.id === c.dataset.id);
+      c.querySelector('.oc-ok').onclick = async ev => {
+        const btn = ev.currentTarget; btn.disabled = true;
+        try {
+          const r = await makeWedding({title: o.title, pkg: o.pkg, date: o.date, email: o.email, phone: o.phone, pay: c.querySelector('.op').value, amount: c.querySelector('.oa').value, theme: cleanDesign(o.design)});
+          if (!r) { btn.disabled = false; return; }
+          await db.doc('albumOrders/' + o.id).update({status: 'created', wid: r.id});
+          toast(r.pending ? 'Albüm oluşturuldu. Aşağıdaki kartta bağlantılar hazır; ödeme gelince “Ödeme alındı”ya basın.' : 'Albüm oluşturuldu ve açıldı. Bağlantıları müşteriye gönderebilirsiniz.'); load();
+        } catch (e) { console.error(e); btn.disabled = false; toast('Oluşturulamadı: ' + (e.code || e.message)); }
+      };
+      c.querySelector('.oc-no').onclick = async () => { if (!confirm('Bu sipariş listeden kaldırılsın mı?')) return; await db.doc('albumOrders/' + o.id).update({status: 'dismissed'}); loadOrders(); };
+    });
+  }
   async function load() {
+    loadOrders();
     const s = await db.collection('weddings').where('ownerUid', '==', u.uid).orderBy('createdAt', 'desc').get();
     if (!s.size) { $('#ls').innerHTML = `<div class="empty"><em>${icoRings(32)}</em><p class="mut" style="margin:0">Henüz düğün yok.<br>“Yeni düğün” ile başlayın; QR ve albüm anahtarı otomatik üretilir.</p></div>`; return; }
-    const items = await Promise.all(s.docs.map(async d => ({id: d.id, w: d.data(), key: (await db.doc(`weddings/${d.id}/secret/k`).get()).data()?.key, newOrders: (await db.collection(`weddings/${d.id}/orders`).where('status', '==', 'new').get()).size})));
-    $('#ls').innerHTML = items.map(({id, w, key, newOrders}) => { const pk = PK[w.pkg] || PK.basic; const lu = guestLink(w, id), la = link('a', id, key);
+    const items = await Promise.all(s.docs.map(async d => ({id: d.id, w: d.data(), key: (await db.doc(`weddings/${d.id}/secret/k`).get()).data()?.key, contact: (await db.doc(`weddings/${d.id}/secret/k`).get()).data() || {}, newOrders: (await db.collection(`weddings/${d.id}/orders`).where('status', '==', 'new').get()).size})));
+    $('#ls').innerHTML = items.map(({id, w, key, contact, newOrders}) => { const pk = PK[w.pkg] || PK.basic; const lu = guestLink(w, id), la = link('a', id, key);
       const pct = Math.min(100, Math.round(((w.usedBytes || 0) / ((w.quotaGB || 1) * GB)) * 100));
       return `<div class="card" data-id="${id}"><div class="row"><h2 style="margin:0">${esc(w.title)}</h2><span class="badge">${pk.n}</span><span class="sp"></span>
       <span class="mut" style="font-size:.8rem">bitiş ${fmtDate(w.expiresAt)}</span></div>
@@ -1519,7 +1562,7 @@ async function admin() {
         ${pk.wall ? `<a class="tile" href="${link('wall', id, key)}" target="_blank" rel="noopener"><em>${icoScreen(28)}</em><span>Duvar</span><b>canlı ekran</b></a>` : ''}
       </div>
       <div class="qrbox"><figure><img src="${qrUrl(lu, 4)}" alt=""><br>Misafir QR</figure><figure><img src="${qrUrl(la, 4)}" alt=""><br>Çift QR</figure></div>
-      <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="png">QR görseli (PNG)</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button><button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
+      <div class="row" style="margin-top:8px"><button class="btn sm" data-a="print">QR kartlarını yazdır</button><button class="btn sm" data-a="png">QR görseli (PNG)</button><button class="btn sm" data-a="wa">WhatsApp ile gönder</button>${contact.coupleEmail ? '<button class="btn sm" data-a="mail">E-posta ile gönder</button>' : ''}<button class="btn sm" data-a="copy">Albüm bağlantısını kopyala</button></div>
       <details class="more"><summary>Diğer işlemler</summary><div class="row">
       <button class="btn sm" data-a="ord">Siparişler${newOrders ? ' (' + newOrders + ' yeni)' : ''}</button><button class="btn sm" data-a="ext">+2 GB ekle</button><button class="btn sm" data-a="mon">Süreyi +6 ay uzat</button><button class="btn sm" data-a="demo">Örnek albüm yap</button><button class="btn sm bad" data-a="del">Sil</button></div></details></div>`; }).join('');
     $('#ls').querySelectorAll('.card').forEach(c => {
@@ -1527,7 +1570,9 @@ async function admin() {
       c.querySelector('[data-a=print]').onclick = () => printKit(it.w, it.id);
       c.querySelector('[data-a=png]').onclick = () => downloadQrCard(it.w, it.id);
       c.querySelector('[data-a=copy]').onclick = () => navigator.clipboard.writeText(link('a', it.id, it.key)).then(() => toast('Kopyalandı'));
-      c.querySelector('[data-a=wa]').onclick = () => window.open('https://wa.me/?text=' + encodeURIComponent(`${it.w.title} albümünüz hazır: ${link('a', it.id, it.key)}\nMisafir yükleme bağlantısı: ${guestLink(it.w, it.id)}`), '_blank');
+      const custMsg = `Merhaba, ${it.w.title} albümünüz hazır.\n\nÇift albümü (yalnızca siz): ${link('a', it.id, it.key)}\nMisafir yükleme bağlantısı: ${guestLink(it.w, it.id)}\n\nQR kartınızı albümünüzdeki Ayarlar > QR Tasarımı bölümünden düzenleyebilir, kendi fotoğrafınızı ekleyebilirsiniz.`;
+      c.querySelector('[data-a=wa]').onclick = () => window.open('https://wa.me/' + waNum(it.contact.phone) + '?text=' + encodeURIComponent(custMsg), '_blank');
+      const mb = c.querySelector('[data-a=mail]'); if (mb) mb.onclick = () => { location.href = `mailto:${it.contact.coupleEmail}?subject=${encodeURIComponent(it.w.title + ' albümünüz hazır')}&body=${encodeURIComponent(custMsg)}`; };
       c.querySelector('[data-a=ord]').onclick = () => showOrders(it.id, it.w);
       const pb = c.querySelector('[data-a=paid]');
       if (pb) pb.onclick = () => {
@@ -1667,13 +1712,13 @@ function buy(ref) {
   <div class="row"><label class="f sp">Ad<input id="b2" autocomplete="given-name"></label><label class="f sp">Soyad<input id="b3" autocomplete="family-name"></label></div>
   <label class="f">E-posta (bağlantılar buraya da gelir)<input id="b4" type="email" autocomplete="email"></label>
   <label class="f">Telefon<input id="b5" type="tel" autocomplete="tel" placeholder="+905xxxxxxxxx"></label>
-  <p class="err" id="be"></p><button class="btn pri" id="bp">${PAY_LIVE ? 'Ödemeye geç' : 'Siparişi e-postayla gönder'}</button>${PAY_LIVE ? '' : '<p class="mut" style="font-size:.78rem;margin:10px 0 0">Online ödeme yakında. Şimdilik siparişinizi e-postayla iletin; size ödeme bilgilerini gönderelim, ödemeniz onaylanınca albümünüz hemen kurulur.</p>'}</div>
+  <p class="err" id="be"></p><button class="btn pri" id="bp">${PAY_LIVE ? 'Ödemeye geç' : 'Siparişi e-postayla gönder'}</button>${(!PAY_LIVE && !WA_NUMBER.includes('X')) ? ' <button class="btn" id="bwa" type="button">WhatsApp ile gönder</button>' : ''}${PAY_LIVE ? '' : '<p class="mut" style="font-size:.78rem;margin:10px 0 0">Online ödeme yakında. Şimdilik siparişinizi e-postayla iletin; size ödeme bilgilerini gönderelim, ödemeniz onaylanınca albümünüz hemen kurulur.</p>'}</div>
   <p class="mut" style="font-size:.8rem"><a href="#/kvkk">Aydınlatma metni</a> · <a href="#/admin">Satıcı girişi</a></p></div>`;
   // taslak: tasarım seçimi + form alanları localStorage'da tutulur, önizleme canlı güncellenir
   const dr = (() => { try { return JSON.parse(localStorage.kdraft || '{}'); } catch (e) { return {}; } })();
   let dColor = /^#[0-9a-f]{6}$/i.test(dr.color || '') ? dr.color : THEMES[0][0];
   const dFrame = () => document.querySelector('input[name=btpl]:checked').value;
-  let dMode = dr.bgMode === 'preset' ? 'preset' : 'plain', dPre = QR_PRESETS.some(p => p.id === dr.preset) ? dr.preset : 'blush';
+  let dMsg = '', dMode = dr.bgMode === 'preset' ? 'preset' : 'plain', dPre = QR_PRESETS.some(p => p.id === dr.preset) ? dr.preset : 'blush';
   if (['top', 'center', 'bottom'].includes(dr.pos)) $('#bpos').value = dr.pos; if (['s', 'm', 'l'].includes(dr.size)) $('#bsz').value = dr.size;
   const dFields = {b1: 'title', b2: 'name', b3: 'surname', b4: 'email', b5: 'phone', b6: 'date'};
   Object.entries(dFields).forEach(([id, k]) => { if (dr[k]) $('#' + id).value = dr[k]; });
@@ -1694,7 +1739,7 @@ function buy(ref) {
     // taslağı satıcıya e-postayla gönder (online ödeme açılana kadar sipariş taslağı olarak da işe yarar)
     const pk = PK[o.pkg] || {}, cn = (THEMES.find(t => t[0] === dColor) || [0, dColor])[1], fn = {minimal: 'Minimal', classic: 'Klasik', elegant: 'Zarif'}[o.frame], ps = {top: 'Üstte', center: 'Ortada', bottom: 'Altta'}[o.pos], zs = {s: 'Küçük', m: 'Orta', l: 'Büyük'}[o.size];
     const mb = ['Merhaba, albüm taslağım:', '', `Çift adı: ${o.title || '-'}`, `Düğün tarihi: ${o.date || '-'}`, `Paket: ${pk.n || o.pkg}`, `Renk teması: ${cn}`, `Çerçeve: ${fn}`, `Kart arka planı: ${dMode === 'preset' ? 'Renkli (' + ((QR_PRESETS.find(p => p.id === dPre) || {}).n || '') + ')' : 'Düz'}`, `QR konumu / boyutu: ${ps} / ${zs}`, '', `Ad Soyad: ${[o.name, o.surname].filter(Boolean).join(' ') || '-'}`, `E-posta: ${o.email || '-'}`, `Telefon: ${o.phone || '-'}`].join('\n');
-    $('#bmail').href = `mailto:${COMPANY.email}?subject=${encodeURIComponent('Kare albüm taslağı')}&body=${encodeURIComponent(mb)}`;
+    dMsg = mb; $('#bmail').href = `mailto:${COMPANY.email}?subject=${encodeURIComponent('Kare albüm taslağı')}&body=${encodeURIComponent(mb)}`;
   };
   document.querySelectorAll('#bsw .swatch').forEach(b => b.onclick = () => { dColor = b.dataset.c; dRender(); });
   document.querySelectorAll('#bmode button').forEach(b => b.onclick = () => { dMode = b.dataset.m; dRender(); });
@@ -1703,13 +1748,32 @@ function buy(ref) {
   document.querySelectorAll('input[name=btpl],input[name=pk]').forEach(r => r.onchange = dRender);
   Object.keys(dFields).forEach(id => $('#' + id).oninput = dRender);
   dRender();
+  // siparişi kaydet: yönetici panelinde "Gelen siparişler"de görünür. Kural henüz yayında değilse sessizce atlanır (e-posta/WhatsApp yine gider)
+  let lastSig = '';
+  async function saveOrder(channel) {
+    const val = id => $(id).value.trim();
+    if (!val('#b1') || !val('#b4')) return false;
+    const o = {title: val('#b1').slice(0, 80), name: val('#b2').slice(0, 60), surname: val('#b3').slice(0, 60), email: val('#b4').slice(0, 120), phone: val('#b5').slice(0, 30), date: $('#b6').value || '',
+      pkg: document.querySelector('input[name=pk]:checked').value, design: {color: dColor, frame: dFrame(), qrBgMode: dMode, qrPreset: dPre, qrPos: $('#bpos').value, qrSize: $('#bsz').value}, ref: (localStorage.ref || '').slice(0, 40)};
+    const sig = JSON.stringify(o); if (sig === lastSig) return true; // aynı taslak iki kez kaydedilmez
+    try { const u = await anon(); await db.collection('albumOrders').add({...o, channel, status: 'new', uid: u.uid, createdAt: TS()}); lastSig = sig; logEv('order_saved'); return true; }
+    catch (e) { console.warn('sipariş kaydı yazılamadı', e); return false; }
+  }
+  $('#bmail').addEventListener('click', () => { saveOrder('draft'); });
+  if ($('#bwa')) $('#bwa').onclick = async () => {
+    if (!$('#b1').value.trim() || !$('#b4').value.trim()) { $('#be').textContent = 'Çift adı ve e-posta gerekli.'; return; }
+    logEv('wa_order'); $('#be').textContent = 'WhatsApp açılıyor; mesajı göndermeniz yeterli.';
+    const win = window.open('about:blank', '_blank'); // tıklamayla eşzamanlı aç: açılır pencere engeline takılmaz
+    await saveOrder('wa'); const url = `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(dMsg)}`;
+    if (win) win.location.href = url; else location.href = url;
+  };
   $('#bp').onclick = async () => {
     const v = id => $(id).value.trim(), body = {color: dColor, frame: dFrame(), qrBgMode: dMode, qrPreset: dPre, qrPos: $('#bpos').value, qrSize: $('#bsz').value, pkg: document.querySelector('input[name=pk]:checked').value, title: v('#b1'), name: v('#b2'), surname: v('#b3'), email: v('#b4'), phone: v('#b5'), date: v('#b6'), ref: localStorage.ref || ''};
     logEv('checkout');
     if (!body.title || !body.email) { $('#be').textContent = 'Çift adı ve e-posta gerekli.'; return; }
     if (!PAY_LIVE) { // online ödeme açılana kadar: sipariş taslağı e-postayla iletilir (elden/IBAN/POS ile ödeme alınır)
       $('#be').innerHTML = `E-posta uygulamanız açılıyor; göndermeniz yeterli. Açılmazsa bilgilerinizi <b>${esc(COMPANY.email)}</b> adresine yazın.`;
-      location.href = $('#bmail').href; return; }
+      await saveOrder('mail'); location.href = $('#bmail').href; return; }
     $('#bp').disabled = true; $('#be').textContent = '';
     try {
       const r = await fetch(FN_URL + '/createCheckout', {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)});
