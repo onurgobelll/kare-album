@@ -1,16 +1,1 @@
-{
-  "name": "Bidon Takip",
-  "short_name": "Bidon",
-  "description": "Yakamoz bidon giriş, çıkış, iade ve stok takibi",
-  "start_url": "./",
-  "scope": "./",
-  "display": "standalone",
-  "orientation": "portrait",
-  "background_color": "#F3F1EA",
-  "theme_color": "#1F4D3A",
-  "icons": [
-    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
-  ]
-}
+{"name":"Kare","short_name":"Kare","start_url":".","display":"standalone","background_color":"#f6efe2","theme_color":"#9a2e2a","icons":[{"src":"icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"}]}
